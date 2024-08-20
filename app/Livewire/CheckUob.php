@@ -63,6 +63,7 @@ class CheckUob extends Component
             foreach($data->aprcpit as $aprcpit){
               $Amount += $aprcpit->aptrn->netamt;
             }
+        //    dd($Amount - $data->amount);
            $fullAddress = mb_substr($data->apmas->addr01
                 . $data->apmas->addr02
                 . $data->apmas->addr03,0,105); 
@@ -111,8 +112,8 @@ class CheckUob extends Component
                 $output .= str_pad('',20);
             }
             else{
-                $output .= str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5);
-                str_pad(sprintf('%015.2f',round($data->amount - $Amount,2),15),15);
+                $output .= str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5)
+                .str_pad(sprintf('%015.2f',round($Amount - $data->amount,2),15),15);
             }
            $output  .= 
             str_pad(sprintf('%015.2f',''),15)
