@@ -60,8 +60,10 @@ class CheckUob extends Component
         foreach($this->linkedData as $data)          
         {
             $Amount = 0;
+            $total= 0;
             foreach($data->aprcpit as $aprcpit){
               $Amount += $aprcpit->aptrn->netamt;
+              $total+= $aprcpit->aptrn->amount;
             }
         //    dd($Amount - $data->amount);
            $fullAddress = mb_substr($data->apmas->addr01
@@ -104,7 +106,7 @@ class CheckUob extends Component
             .str_pad('OUR',12)
             .str_pad(sprintf('%013.0f',$data->apmas->taxid),13)
             .str_pad('53',2)
-            .str_pad(sprintf('%015.2f',$data->amount),15)
+            .str_pad(sprintf('%015.2f',$total),15)
             .str_pad($data->apmas->suptyp,2)
             .$taxDes
             .str_pad('',35-mb_strlen($taxDes));
