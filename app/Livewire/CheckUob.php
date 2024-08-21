@@ -46,14 +46,15 @@ class CheckUob extends Component
             ->with('aprcpit')->get();
 
         foreach ($this->linkedData as $data) {
-            $this->ebill_to[$data->id] = $data->apmas->supnam;
+            $this->ebill_to['name'][$data->id] = $data->apmas->supnam;
+            $this->ebill_to['addr1'][$data->id] = $data->apmas->addr01;
+            $this->ebill_to['addr2'][$data->id] = $data->apmas->addr02;
+            $this->ebill_to['addr3'][$data->id] = $data->apmas->addr03;
         }
-        // dd($this->linkedData);
     }  
 
-    public function txtFile(){
 
-        // dd($this->linkedData); 
+    public function txtFile(){
         $selectedDate = Carbon::parse($this->dateCheck);
         $date = $selectedDate->format('d').$selectedDate->format('m').$selectedDate->format('Y');
         $output = null;
@@ -66,17 +67,17 @@ class CheckUob extends Component
               $total+= $aprcpit->aptrn->amount;
             }
         //    dd($Amount - $data->amount);
-           $fullAddress = mb_substr($data->apmas->addr01
-                . $data->apmas->addr02
-                . $data->apmas->addr03,0,105); 
+           $fullAddress = mb_substr($this->ebill_to['addr1'][$data->id]
+                . $this->ebill_to['addr2'][$data->id] 
+                . $this->ebill_to['addr3'][$data->id],0,105); 
             $totalAmount = 0;
             $totalVat= 0;
             $totalNet= 0;
             $nameCom = mb_substr($data->apmas->prenam . $this->ebill_to[$data->id],0,70);
-            $nameCom35 =mb_substr($this->ebill_to[$data->id],0,35); 
-            $address1 = mb_substr($data->apmas->addr01,0,35);
-            $address2 = mb_substr($data->apmas->addr02,0,35);
-            $address3 = mb_substr($data->apmas->addr03,0,35);
+            $nameCom35 = mb_substr($this->ebill_to[$data->id],0,35); 
+            $address1 = mb_substr($this->ebill_to['addr1'][$data->id],0,35);
+            $address2 = mb_substr($this->ebill_to['addr2'][$data->id],0,35);
+            $address3 = mb_substr($this->ebill_to['addr3'][$data->id],0,35);
             $taxDes = mb_substr($data->apmas->taxdes,0,35);
             $output .= 
             str_pad('TXN',3)  
@@ -146,7 +147,6 @@ class CheckUob extends Component
             str_pad('',6).
             str_pad('Net',11,' ', STR_PAD_LEFT)
             ."\n";
-          
             foreach($data->aprcpit as $aprcpit){
               $totalAmount += $aprcpit->aptrn->amount;
               $totalVat += $aprcpit->aptrn->vatamt;

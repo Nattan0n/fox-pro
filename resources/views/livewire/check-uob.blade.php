@@ -57,22 +57,13 @@
                                         Vendor Name 
                                     </th>
                                     <th scope="col" class="px-6 py-3">
-                                        Pay Amt 
+                                        Address 1 
                                     </th>
                                     <th scope="col" class="px-6 py-3">
-                                        Voucher No
+                                        Address 2 
                                     </th>
                                     <th scope="col" class="px-6 py-3">
-                                        Tax Id 
-                                    </th>
-                                    <th scope="col" class="px-6 py-3">
-                                        Address 
-                                    </th>
-                                    <th scope="col" class="px-6 py-3">
-                                        Base Amt  
-                                    </th>
-                                    <th scope="col" class="px-6 py-3">
-                                        Wht Amt. 
+                                        Address 3 
                                     </th>
                                 </tr>
                             </thead>
@@ -89,26 +80,27 @@
                                     <td class="px-6 py-4">
                                         <textarea
                                         id="message" 
-                                        wire:model.live="ebill_to.{{ $data->id }}"
+                                        wire:model.live="ebill_to.name.{{ $data->id }}"
+                                        rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here...">{{ $ebill_to['name'][$data->id] }}</textarea>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                         <textarea
+                                        id="message" 
+                                        wire:model.live="ebill_to.addr1.{{ $data->id }}"
+                                        rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here...">{{ $ebill_to['addr1'][$data->id] }}</textarea>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                         <textarea
+                                        id="message" 
+                                        wire:model.live="ebill_to.addr2.{{ $data->id }}"
+                                        rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here...">{{ $ebill_to['addr2'][$data->id] }}</textarea>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                         <textarea
+                                        id="message" 
+                                        wire:model.live="ebill_to.addr3.{{ $data->id }}"
                                         {{-- wire:change="updateName({{ $data->id }})" --}}
-                                        rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here...">{{ $ebill_to[$data->id] }}</textarea>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        {{ number_format($data->netamt,2,'.',',') }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                       {{ $data->voucher }} 
-                                    </td>
-                                    <td class="px-6 py-4">
-                                       {{ $data->apmas->taxid }} 
-                                    </td>
-                                    <td class="px-6 py-4">
-                                       {{ $data->apmas->addr01 }} 
-                                    </td>
-                                    <td class="px-6 py-4">
-                                       {{ number_format($data->amount,2,'.',',') }} 
-                                    </td>
-                                    <td class="px-6 py-4">
+                                        rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here...">{{ $ebill_to['addr3'][$data->id] }}</textarea>
                                     </td>
                                 </tr>
                             </tbody> 
