@@ -73,8 +73,8 @@ class CheckUob extends Component
             $totalAmount = 0;
             $totalVat= 0;
             $totalNet= 0;
-            $nameCom = mb_substr($data->apmas->prenam . $this->ebill_to[$data->id],0,70);
-            $nameCom35 = mb_substr($this->ebill_to[$data->id],0,35); 
+            $nameCom = mb_substr($data->apmas->prenam . $this->ebill_to['name'][$data->id],0,70);
+            $nameCom35 = mb_substr($this->ebill_to['name'][$data->id],0,35); 
             $address1 = mb_substr($this->ebill_to['addr1'][$data->id],0,35);
             $address2 = mb_substr($this->ebill_to['addr2'][$data->id],0,35);
             $address3 = mb_substr($this->ebill_to['addr3'][$data->id],0,35);
