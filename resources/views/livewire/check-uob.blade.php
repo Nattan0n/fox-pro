@@ -51,7 +51,7 @@
                                        Reference No.  
                                     </th>
                                     <th scope="col" class="px-6 py-3">
-                                        Date
+                                        Tax Id 
                                     </th>
                                     <th scope="col" class="px-6 py-3">
                                         Vendor Name 
@@ -75,7 +75,7 @@
                                         {{ $data->chqnum}}
                                     </th>
                                     <td class="px-6 py-4">
-                                        {{  \carbon\Carbon::parse($dateCheck)->format('d/m/Y') }}
+                                        <input wire:model.live="ebill_to.taxid.{{ $data->id }}" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                                     </td>
                                     <td class="px-6 py-4">
                                         <textarea

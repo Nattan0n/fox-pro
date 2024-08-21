@@ -50,6 +50,7 @@ class CheckUob extends Component
             $this->ebill_to['addr1'][$data->id] = $data->apmas->addr01;
             $this->ebill_to['addr2'][$data->id] = $data->apmas->addr02;
             $this->ebill_to['addr3'][$data->id] = $data->apmas->addr03;
+            $this->ebill_to['taxid'][$data->id] = $data->apmas->taxid;
         }
     }  
 
@@ -94,8 +95,8 @@ class CheckUob extends Component
             .str_pad("",35-mb_strlen($address3))
             .str_pad($data->apmas->zipcod,10)
             .str_pad(sprintf('%015.2f',$data->netamt),15)
-            .str_pad($data->chqnum,15).
-            str_pad($date,8)
+            .str_pad($data->chqnum,15)
+            .str_pad($date,8)
             .str_pad("REC+TAX",35)
             .str_pad("",35)
             .str_pad("",35)
@@ -105,7 +106,7 @@ class CheckUob extends Component
             .str_pad('',10)
             .str_pad('',70)
             .str_pad('OUR',12)
-            .str_pad(sprintf('%013.0f',$data->apmas->taxid),13)
+            .str_pad(sprintf('%013.0f',$this->ebill_to['taxid'][$data->id]),13)
             .str_pad('53',2)
             .str_pad(sprintf('%015.2f',$total),15)
             .str_pad($data->apmas->suptyp,2)
