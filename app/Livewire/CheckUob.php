@@ -64,8 +64,8 @@ class CheckUob extends Component
             $Amount = 0;
             $total= 0;
             foreach($data->aprcpit as $aprcpit){
-              $Amount += $aprcpit->aptrn->netamt;
-              $total+= $aprcpit->aptrn->amount;
+              $Amount += $aprcpit->aptrn->netamt ?? 0;
+              $total+= $aprcpit->aptrn->amount ?? 0;
             }
         //    dd($Amount - $data->amount);
            $fullAddress = mb_substr($this->ebill_to['addr1'][$data->id]
@@ -74,12 +74,12 @@ class CheckUob extends Component
             $totalAmount = 0;
             $totalVat= 0;
             $totalNet= 0;
-            $nameCom = mb_substr($data->apmas->prenam . $this->ebill_to['name'][$data->id],0,70);
+            $nameCom = mb_substr($data->apmas->prenam ?? null . $this->ebill_to['name'][$data->id],0,70);
             $nameCom35 = mb_substr($this->ebill_to['name'][$data->id],0,35); 
             $address1 = mb_substr($this->ebill_to['addr1'][$data->id],0,35);
             $address2 = mb_substr($this->ebill_to['addr2'][$data->id],0,35);
             $address3 = mb_substr($this->ebill_to['addr3'][$data->id],0,35);
-            $taxDes = mb_substr($data->apmas->taxdes,0,35);
+            $taxDes = mb_substr($data->apmas->taxdes ?? 0,0,35);
             $output .= 
             str_pad('TXN',3)  
             // .str_pad(mb_strlen($nameCom),2)
@@ -93,9 +93,9 @@ class CheckUob extends Component
             .str_pad("",35-mb_strlen($address2))
             .$address3
             .str_pad("",35-mb_strlen($address3))
-            .str_pad($data->apmas->zipcod,10)
-            .str_pad(sprintf('%015.2f',$data->netamt),15)
-            .str_pad($data->chqnum,15)
+            .str_pad($data->apmas->zipcod ?? null,10)
+            .str_pad(sprintf('%015.2f',$data->netamt ?? null),15)
+            .str_pad($data->chqnum ?? null,15)
             .str_pad($date,8)
             .str_pad("REC+TAX",35)
             .str_pad("",35)
@@ -109,7 +109,7 @@ class CheckUob extends Component
             .str_pad(sprintf('%013.0f',$this->ebill_to['taxid'][$data->id]),13)
             .str_pad('53',2)
             .str_pad(sprintf('%015.2f',$total),15)
-            .str_pad($data->apmas->suptyp,2)
+            .str_pad($data->apmas->suptyp ?? null,2)
             .$taxDes
             .str_pad('',35-mb_strlen($taxDes));
             if($data->amount == $Amount){
@@ -117,7 +117,7 @@ class CheckUob extends Component
             }
             else{
                 $output .= str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5)
-                .str_pad(sprintf('%015.2f',round($Amount - $data->amount,2),15),15);
+                .str_pad(sprintf('%015.2f',round($Amount - $data->amount ?? 0,2),15),15);
             }
            $output  .= 
             str_pad(sprintf('%015.2f',''),15)
@@ -135,7 +135,7 @@ class CheckUob extends Component
             .str_pad("",35-mb_strlen($nameCom35)) 
             .$fullAddress
             .str_pad("",105-mb_strlen($fullAddress))
-            .str_pad($data->apmas->taxcond,1)
+            .str_pad($data->apmas->taxcond ?? null,1)
             ."\n".
             // str_pad('',3).
             str_pad('INV No.',14).
@@ -149,20 +149,20 @@ class CheckUob extends Component
             str_pad('Net',11,' ', STR_PAD_LEFT)
             ."\n";
             foreach($data->aprcpit as $aprcpit){
-              $totalAmount += $aprcpit->aptrn->amount;
-              $totalVat += $aprcpit->aptrn->vatamt;
-              $totalNet += $aprcpit->aptrn->netamt;
+              $totalAmount += $aprcpit->aptrn->amount ?? 0;
+              $totalVat += $aprcpit->aptrn->vatamt ?? 0;
+              $totalNet += $aprcpit->aptrn->netamt ?? 0;
               $dateinv = substr($aprcpit->aptrn->duedat, 6, 2) . "/" . substr($aprcpit->aptrn->duedat, 4, 2) . "/" . substr($aprcpit->aptrn->duedat, 0, 4); 
            $output .=
             // str_pad('',3).
-            str_pad('INV'.($aprcpit->aptrn->refnum),18).
+            str_pad('INV'.($aprcpit->aptrn->refnum ?? null),18).
             str_pad('',1).
             str_pad($dateinv,10).
             str_pad('',2).
-            str_pad(sprintf('%.2f',$aprcpit->aptrn->amount),11,' ', STR_PAD_LEFT).
+            str_pad(sprintf('%.2f',$aprcpit->aptrn->amount ?? 0),11,' ', STR_PAD_LEFT).
             str_pad('',2).
-            str_pad(sprintf('%.2f',$aprcpit->aptrn->vatamt),9,' ', STR_PAD_LEFT).
-            str_pad(sprintf('%.2f',$aprcpit->aptrn->netamt),13,' ', STR_PAD_LEFT)
+            str_pad(sprintf('%.2f',$aprcpit->aptrn->vatamt ?? 0),9,' ', STR_PAD_LEFT).
+            str_pad(sprintf('%.2f',$aprcpit->aptrn->netamt ?? 0),13,' ', STR_PAD_LEFT)
             ."\n"; 
             }
             $output .= 
