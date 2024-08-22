@@ -46,11 +46,11 @@ class CheckUob extends Component
             ->with('aprcpit')->get();
 
         foreach ($this->linkedData as $data) {
-            $this->ebill_to['name'][$data->id] = $data->apmas->supnam;
-            $this->ebill_to['addr1'][$data->id] = $data->apmas->addr01;
-            $this->ebill_to['addr2'][$data->id] = $data->apmas->addr02;
-            $this->ebill_to['addr3'][$data->id] = $data->apmas->addr03;
-            $this->ebill_to['taxid'][$data->id] = $data->apmas->taxid;
+            $this->ebill_to['name'][$data->id] = $data->apmas->supnam ?? null;
+            $this->ebill_to['addr1'][$data->id] = $data->apmas->addr01 ?? null;
+            $this->ebill_to['addr2'][$data->id] = $data->apmas->addr02 ?? null;
+            $this->ebill_to['addr3'][$data->id] = $data->apmas->addr03 ?? null;
+            $this->ebill_to['taxid'][$data->id] = $data->apmas->taxid ?? null;
         }
     }  
 
