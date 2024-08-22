@@ -46,15 +46,26 @@ class CheckUob extends Component
             ->with('aprcpit')->get();
 
         foreach ($this->linkedData as $data) {
-            $this->ebill_to['name'][$data->id] = $data->apmas->supnam ?? null;
-            $this->ebill_to['addr1'][$data->id] = $data->apmas->addr01 ?? null;
-            $this->ebill_to['addr2'][$data->id] = $data->apmas->addr02 ?? null;
-            $this->ebill_to['addr3'][$data->id] = $data->apmas->addr03 ?? null;
+            $Amount = 0;
+            $total= 0;
+            foreach($data->aprcpit as $aprcpit){
+              $Amount += $aprcpit->aptrn->netamt ?? 0;
+              $total+= $aprcpit->aptrn->amount ?? 0;
+            }
             $this->ebill_to['taxid'][$data->id] = $data->apmas->taxid ?? null;
+            $this->ebill_to['name'][$data->id] = $data->apmas->supnam ?? null;
+            if($data->amount == $Amount){
+                $this->ebill_to['addr1'][$data->id] = null;
+                $this->ebill_to['addr2'][$data->id] = null;
+                $this->ebill_to['addr3'][$data->id] = null;
+            }
+            else{
+                $this->ebill_to['addr1'][$data->id] = $data->apmas->addr01 ?? null;
+                $this->ebill_to['addr2'][$data->id] = $data->apmas->addr02 ?? null;
+                $this->ebill_to['addr3'][$data->id] = $data->apmas->addr03 ?? null;
+            }
         }
     }  
-
-
     public function txtFile(){
         $selectedDate = Carbon::parse($this->dateCheck);
         $date = $selectedDate->format('d').$selectedDate->format('m').$selectedDate->format('Y');
@@ -74,7 +85,7 @@ class CheckUob extends Component
             $totalAmount = 0;
             $totalVat= 0;
             $totalNet= 0;
-            $nameCom = mb_substr($data->apmas->prenam ?? null . $this->ebill_to['name'][$data->id],0,70);
+            $nameCom = mb_substr(($data->apmas->prenam ?? null) . $this->ebill_to['name'][$data->id],0,70);
             $nameCom35 = mb_substr($this->ebill_to['name'][$data->id],0,35); 
             $address1 = mb_substr($this->ebill_to['addr1'][$data->id],0,35);
             $address2 = mb_substr($this->ebill_to['addr2'][$data->id],0,35);
