@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Exports\CheckLists;
 use App\Models\Aprcpit;
 use App\Models\Aptrn;
 use App\Models\Bktrn;
@@ -15,6 +16,7 @@ use App\Services\DbfDataFetcher;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Artisan as FacadesArtisan;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CheckUob extends Component
 {
@@ -200,25 +202,31 @@ class CheckUob extends Component
         Storage::disk('local')->put('test.txt',$data);
         return response()->download(storage_path('app/test.txt'),'test.txt');
     }
+    public function exportExcel(){
+       return Excel::download(new CheckLists($this->linkedData,$this->ebill_to),'report.xlsx');
+    }
 
     public function cu27(){
         $selectedDate = Carbon::parse($this->dateCheck);
         $date = $selectedDate->format('d').$selectedDate->format('m').$selectedDate->format('Y');
         $output = null;   
         foreach($this->linkedData as $data){
-            $fullAddress = mb_substr($data->apmas->addr01
-            . $data->apmas->addr02
-            . $data->apmas->addr03,0,105); 
-            $nameCom35 =mb_substr($data->apmas->supnam,0,35); 
-            $nameCom = mb_substr($data->name,0,150);
-            $address1 = mb_substr($data->apmas->addr01,0,70);
-            $address2 = mb_substr($data->apmas->addr02,0,70);
-            $address3 = mb_substr($data->apmas->addr03,0,70);
-            $taxDes = mb_substr($data->apmas->taxdes,0,35);
+            $totalAmount = 0;
+            $totalNet = 0;
+            $totalVat = 0;
+            $fullAddress = mb_substr($this->ebill_to['addr1'][$data->id]
+                . $this->ebill_to['addr2'][$data->id] 
+                . $this->ebill_to['addr3'][$data->id],0,105); 
+            $nameCom35 = mb_substr($this->ebill_to['name'][$data->id],0,35);
+            $nameCom = mb_substr($this->ebill_to['name'][$data->id],0,150);
+            $address1 = mb_substr($this->ebill_to['addr1'][$data->id],0,70);
+            $address2 = mb_substr($this->ebill_to['addr2'][$data->id],0,70);
+            $address3 = mb_substr($this->ebill_to['addr3'][$data->id],0,70);
+            $taxDes = mb_substr($data->apmas->taxdes ?? null,0,35);
             $output .= str_pad('TXN',3).
-                    (str_pad('00',10)).
+                    (str_pad('CHC',10)).
                     $nameCom.
-                    str_pad("",70-mb_strlen($nameCom)).
+                    str_pad("",150-mb_strlen($nameCom)).
                     $address1.
                     str_pad("",70-mb_strlen($address1)).
                     $address2.
@@ -226,8 +234,13 @@ class CheckUob extends Component
                     $address3.
                     str_pad("",70-mb_strlen($address3)).
                     str_pad("",70).
-                    str_pad($data->apmas->zipcod,10).
-                    str_pad("",20).
+                    str_pad("",70).
+                    str_pad("",150).
+                    str_pad("",70).
+                    str_pad("",70).
+                    str_pad("",70).
+                    str_pad("",70).
+                    str_pad($data->apmas->zipcod ?? null,10).
                     str_pad("",20).
                     str_pad("",20).
                     str_pad("",20).
@@ -243,38 +256,74 @@ class CheckUob extends Component
                     str_pad("REC+TAX",35).
                     str_pad("RT",5).
                     str_pad("SATHORN1",35).
-                    str_pad("NONE",5).
+                    str_pad("",5).
                     str_pad("",10).
                     str_pad("",120).
                     str_pad("",10).
                     str_pad("",20).
                     str_pad("OUR",12).
-                    str_pad(sprintf('%020.0f',$data->apmas->taxid),20).
+                    str_pad(sprintf('%020.0f',$data->apmas->taxid ?? null),20).
                     str_pad("",20).
                     str_pad('53',5)
                     .str_pad(sprintf('%020.2f',$data->amount),20)
-                    .str_pad($data->apmas->suptyp,2)
+                    .str_pad($data->apmas->suptyp ?? null,2)
                     .$taxDes
                     .str_pad('',35-mb_strlen($taxDes))
                     .str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5)
-                    .str_pad(sprintf('%015.2f',round(1,2)),15)
-                    .str_pad(sprintf('%015.2f',''),15)
+                    .str_pad(sprintf('%020.2f',round(1,2)),20)
+                    .str_pad(sprintf('%020.2f',''),20)
+                    .str_pad('',35)
+                    .str_pad('',2)
+                    .str_pad(sprintf('%05.2f',''),5)
+                    .str_pad(sprintf('%020.2f',''),20)
+                    .str_pad(sprintf('%020.2f',''),20)
                     .str_pad('',35)
                     .str_pad('',2)
                     .str_pad(sprintf('%05.2f',''),5)
                     .str_pad(sprintf('%015.2f',''),15)
-                    .str_pad(sprintf('%015.2f',''),15)
-                    .str_pad('',35)
-                    .str_pad('',2)
-                    .str_pad('',164)
+                    .str_pad("",15)
+                    .str_pad('',154)
                     .str_pad("",20)
                     .$nameCom35
                     .str_pad("",35-mb_strlen($nameCom35)) 
                     .$fullAddress
                     .str_pad("",105-mb_strlen($fullAddress))
                     .str_pad("",10)
-                    .str_pad($data->apmas->taxcond,1);
+                    .str_pad($data->apmas->taxcond ?? null,1)
+                    ."\n";
+                       str_pad('INV No.',14).
+            str_pad('',1).
+            str_pad('Inv. Date',10).
+            str_pad('',2).
+            str_pad('Inv.Amt',13,' ', STR_PAD_LEFT).
+            str_pad('',2).
+            str_pad('Vat',14,' ', STR_PAD_LEFT).
+            str_pad('',6).
+            str_pad('Net',11,' ', STR_PAD_LEFT)
+            ."\n";
+
+            foreach($data->aprcpit as $aprcpit){
+              $totalAmount += $aprcpit->aptrn->amount ?? 0;
+              $totalVat += $aprcpit->aptrn->vatamt ?? 0;
+              $totalNet += $aprcpit->aptrn->netamt ?? 0;
+              $dateinv = substr($aprcpit->aptrn->duedat, 6, 2) . "/" . substr($aprcpit->aptrn->duedat, 4, 2) . "/" . substr($aprcpit->aptrn->duedat, 0, 4); 
+           $output .=
+            // str_pad('',3).
+            str_pad('INV'.($aprcpit->aptrn->refnum ?? null),18).
+            str_pad('',1).
+            str_pad($dateinv,10).
+            str_pad('',2).
+            str_pad(sprintf('%.2f',$aprcpit->aptrn->amount ?? 0),11,' ', STR_PAD_LEFT).
+            str_pad('',2).
+            str_pad(sprintf('%.2f',$aprcpit->aptrn->vatamt ?? 0),9,' ', STR_PAD_LEFT).
+            str_pad(sprintf('%.2f',$aprcpit->aptrn->netamt ?? 0),13,' ', STR_PAD_LEFT)
+            ."\n"; 
+            }
         }
+        $ansiData = iconv('UTF-8', 'Windows-874//TRANSLIT', $output);
+        $data= str_replace("\n", "\r\n", $ansiData);
+        Storage::disk('local')->put('test.txt',$data);
+        return response()->download(storage_path('app/test.txt'),'cu27.txt');
     }
     public function render()
     {
