@@ -211,6 +211,12 @@ class CheckUob extends Component
         $date = $selectedDate->format('d').$selectedDate->format('m').$selectedDate->format('Y');
         $output = null;   
         foreach($this->linkedData as $data){
+            $Amount = 0;
+            $total= 0;
+            foreach($data->aprcpit as $aprcpit){
+              $Amount += $aprcpit->aptrn->netamt ?? 0;
+              $total+= $aprcpit->aptrn->amount ?? 0;
+            }
             $totalAmount = 0;
             $totalNet = 0;
             $totalVat = 0;
@@ -268,10 +274,15 @@ class CheckUob extends Component
                     .str_pad(sprintf('%020.2f',$data->amount),20)
                     .str_pad($data->apmas->suptyp ?? null,2)
                     .$taxDes
-                    .str_pad('',35-mb_strlen($taxDes))
-                    .str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5)
-                    .str_pad(sprintf('%020.2f',round(1,2)),20)
-                    .str_pad(sprintf('%020.2f',''),20)
+                    .str_pad('',35-mb_strlen($taxDes));
+                    if($data->amount == $Amount){
+                        $output .= str_pad('',20);
+                    }
+                    else{
+                        $output .= str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5)
+                        .str_pad(sprintf('%015.2f',round($Amount - $data->amount ?? 0,2),15),15);
+                    }
+                    $output .= str_pad(sprintf('%020.2f',''),20)
                     .str_pad('',35)
                     .str_pad('',2)
                     .str_pad(sprintf('%05.2f',''),5)
