@@ -66,9 +66,6 @@
                                     <th scope="col" class="px-6 py-3">
                                         Tax Id 
                                     </th>
-                                     <th scope="col" class="px-6 py-3">
-                                        Name Title 
-                                    </th>
                                     <th scope="col" class="px-6 py-3">
                                         Vendor Name 
                                     </th>
