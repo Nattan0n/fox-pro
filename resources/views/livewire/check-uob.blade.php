@@ -66,6 +66,9 @@
                                     <th scope="col" class="px-6 py-3">
                                         Tax Id 
                                     </th>
+                                     <th scope="col" class="px-6 py-3">
+                                        Name Title 
+                                    </th>
                                     <th scope="col" class="px-6 py-3">
                                         Vendor Name 
                                     </th>
@@ -88,7 +91,7 @@
                                         {{ $data->chqnum}}
                                     </th>
                                     <td class="px-6 py-4">
-                                        <input wire:model.live="ebill_to.taxid.{{ $data->id }}" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                                        <input wire:model.live="ebill_to.taxid.{{ $data->id }}" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-2.5" />
                                     </td>
                                     <td class="px-6 py-4">
                                         <textarea

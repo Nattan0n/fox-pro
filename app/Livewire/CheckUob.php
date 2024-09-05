@@ -55,7 +55,7 @@ class CheckUob extends Component
               $total+= $aprcpit->aptrn->amount ?? 0;
             }
             $this->ebill_to['taxid'][$data->id] = $data->apmas->taxid ?? null;
-            $this->ebill_to['name'][$data->id] = $data->apmas->supnam ?? null;
+            $this->ebill_to['name'][$data->id] = ($data->apmas->prenam ?? null) . ($data->apmas->supnam ?? null);
             if($data->amount == $Amount){
                 $this->ebill_to['addr1'][$data->id] = null;
                 $this->ebill_to['addr2'][$data->id] = null;
@@ -87,7 +87,7 @@ class CheckUob extends Component
             $totalAmount = 0;
             $totalVat= 0;
             $totalNet= 0;
-            $nameCom = mb_substr(($data->apmas->prenam ?? null) . $this->ebill_to['name'][$data->id],0,70);
+            $nameCom = mb_substr($this->ebill_to['name'][$data->id],0,70);
             $nameCom35 = mb_substr($this->ebill_to['name'][$data->id],0,35); 
             $address1 = mb_substr($this->ebill_to['addr1'][$data->id],0,35);
             $address2 = mb_substr($this->ebill_to['addr2'][$data->id],0,35);
