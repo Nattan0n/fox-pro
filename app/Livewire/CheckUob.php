@@ -241,10 +241,14 @@ class CheckUob extends Component
                     str_pad("",70-mb_strlen($address3)).
                     str_pad("",70).
                     str_pad("",70).
-                    str_pad("",150).
-                    str_pad("",70).
-                    str_pad("",70).
-                    str_pad("",70).
+                    $nameCom.
+                    str_pad("",150-mb_strlen($nameCom)).
+                    $address1.
+                    str_pad("",70-mb_strlen($address1)).
+                    $address2.
+                    str_pad("",70-mb_strlen($address2)).
+                    $address3.
+                    str_pad("",70-mb_strlen($address3)). 
                     str_pad("",70).
                     str_pad($data->apmas->zipcod ?? null,10).
                     str_pad("",20).
@@ -272,15 +276,17 @@ class CheckUob extends Component
                     str_pad("",20).
                     str_pad('53',5)
                     .str_pad(sprintf('%020.2f',$data->amount),20)
-                    .str_pad($data->apmas->suptyp ?? null,2)
-                    .$taxDes
-                    .str_pad('',35-mb_strlen($taxDes));
+                    .str_pad($data->apmas->suptyp ?? null,2);
                     if($data->amount == $Amount){
-                        $output .= str_pad('',20);
+                        $output .= str_pad('',35) 
+                                .str_pad('00.00',5)
+                                .str_pad('000000000000.00',15);
                     }
                     else{
-                        $output .= str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5)
-                        .str_pad(sprintf('%015.2f',round($Amount - $data->amount ?? 0,2),15),15);
+                        $output .= $taxDes
+                            .str_pad('',35-mb_strlen($taxDes))
+                            .str_pad(sprintf('%05.2f',$data->apmas->taxrat ?? null),5)
+                            .str_pad(sprintf('%015.2f',round($Amount - $data->amount ?? 0,2),15),15);
                     }
                     $output .= str_pad(sprintf('%020.2f',''),20)
                     .str_pad('',35)
@@ -293,25 +299,25 @@ class CheckUob extends Component
                     .str_pad(sprintf('%05.2f',''),5)
                     .str_pad(sprintf('%015.2f',''),15)
                     .str_pad("",15)
-                    .str_pad('',154)
+                    .str_pad('',159)
                     .str_pad("",20)
                     .$nameCom35
                     .str_pad("",35-mb_strlen($nameCom35)) 
                     .$fullAddress
                     .str_pad("",105-mb_strlen($fullAddress))
                     .str_pad("",10)
-                    .str_pad($data->apmas->taxcond ?? null,1)
+                    .str_pad('1',1)
                     ."\n";
-                       str_pad('INV No.',14).
-            str_pad('',1).
-            str_pad('Inv. Date',10).
-            str_pad('',2).
-            str_pad('Inv.Amt',13,' ', STR_PAD_LEFT).
-            str_pad('',2).
-            str_pad('Vat',14,' ', STR_PAD_LEFT).
-            str_pad('',6).
-            str_pad('Net',11,' ', STR_PAD_LEFT)
-            ."\n";
+            //            str_pad('INV No.',14).
+            // str_pad('',1).
+            // str_pad('Inv. Date',10).
+            // str_pad('',2).
+            // str_pad('Inv.Amt',13,' ', STR_PAD_LEFT).
+            // str_pad('',2).
+            // str_pad('Vat',14,' ', STR_PAD_LEFT).
+            // str_pad('',6).
+            // str_pad('Net',11,' ', STR_PAD_LEFT)
+            // ."\n";
 
             foreach($data->aprcpit as $aprcpit){
               $totalAmount += $aprcpit->aptrn->amount ?? 0;

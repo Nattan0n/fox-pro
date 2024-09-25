@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class CheckLists implements WithStyles
@@ -22,20 +23,29 @@ class CheckLists implements WithStyles
 
     public function styles(Worksheet $sheet)
     {
-        $column = 1;
+        $sheet->setCellValue("A1","เลขที่เช็ค");
+        $sheet->setCellValue("B1","ชื่อบริษัท");
+        $sheet->setCellValue("C1","วันที่บิล");
+        $sheet->setCellValue("D1","วันที่จ่าย");
+        $sheet->setCellValue("E1","ที่อยู่");
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(40);
+        $sheet->getColumnDimension('C')->setWidth(13);
+        $sheet->getColumnDimension('D')->setWidth(13);
+        $sheet->getColumnDimension('E')->setWidth(13);
+        $sheet->getColumnDimension('F')->setWidth(13);
+        $column = 2;
         $date = $this->linkedData->first()->chqdat;
         $reformatDate = substr($date,6,2)."/".substr($date,4,2)."/".substr($date,0,4);
         foreach($this->linkedData as $data){
             $totalAmount = 0;
             $totalVat= 0;
             $totalNet= 0;
-            $sheet->setCellValue("A$column","ID : ".$this->ebill['taxid'][$data->id]);
-            $sheet->setCellValue("B$column",$data->chqnum);
-            $sheet->setCellValue("C$column",$reformatDate);
-            $sheet->setCellValue("D$column",$this->ebill['name'][$data->id]);
-            $sheet->setCellValue("E$column",$this->ebill['addr1'][$data->id]);
-            $sheet->setCellValue("F$column",$this->ebill['addr2'][$data->id]);
-            $sheet->setCellValue("G$column",$this->ebill['addr3'][$data->id]);
+            $sheet->setCellValue("A$column",$data->chqnum);
+            $sheet->setCellValue("D$column",$reformatDate);
+            $sheet->setCellValue("B$column",$this->ebill['name'][$data->id]);
+            $sheet->getStyle("B$column")->getAlignment()->setWrapText(true);
+            $sheet->setCellValue("E$column",$this->ebill['addr1'][$data->id] . $this->ebill['addr2'][$data->id] . $this->ebill['addr3'][$data->id]);
             $column += 1;
             foreach($data->aprcpit as $aprcpit){
                 $totalAmount += $aprcpit->aptrn->amount ?? 0;
@@ -49,7 +59,13 @@ class CheckLists implements WithStyles
                 $sheet->setCellValue("F$column",$aprcpit->aptrn->netamt);
                 $column += 1;
             }
-            $column += 1;
+                $sheet->setCellValue("D$column",$totalAmount);
+                $sheet->setCellValue("E$column",$totalVat);
+                $sheet->setCellValue("F$column",$totalNet);
+                 $sheet->getStyle("A$column:F$column")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+            $column += 2;
         }
+          $sheet->getStyle('D3:F'.($column))->getNumberFormat()->setFormatCode('#,##0.00');
     }
 }
