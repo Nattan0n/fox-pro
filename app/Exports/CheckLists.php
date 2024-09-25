@@ -56,16 +56,17 @@ class CheckLists implements WithStyles
                 $sheet->setCellValue("C$column",$dateinv);
                 $sheet->setCellValue("D$column",$aprcpit->aptrn->amount);
                 $sheet->setCellValue("E$column",$aprcpit->aptrn->vatamt);
-                $sheet->setCellValue("F$column",$aprcpit->aptrn->netamt);
                 $column += 1;
             }
-                $sheet->setCellValue("D$column",$totalAmount);
-                $sheet->setCellValue("E$column",$totalVat);
-                $sheet->setCellValue("F$column",$totalNet);
-                 $sheet->getStyle("A$column:F$column")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->setCellValue("D$column",$totalAmount);
+            $sheet->setCellValue("E$column",$totalVat);
+            $sheet->setCellValue("F$column",$totalNet);
+            $sheet->setCellValue("G$column",$totalNet - $data->amount ?? 0  );
+            $sheet->setCellValue("H$column",$data->amount);
+            $sheet->getStyle("A$column:H$column")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
             $column += 2;
         }
-          $sheet->getStyle('D3:F'.($column))->getNumberFormat()->setFormatCode('#,##0.00');
+          $sheet->getStyle('D3:H'.($column))->getNumberFormat()->setFormatCode('#,##0.00');
     }
 }
