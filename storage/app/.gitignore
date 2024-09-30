@@ -1,3 +1,6 @@
 *
 !public/
+!temp/
+!temp/.keep
+!public/remote_dbf/
 !.gitignore
