@@ -92,6 +92,23 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
+        // เพิ่ม Oracle connection นี้
+        'oracle' => [
+            'driver'         => 'oracle',
+            'host'           => env('DB_ORACLE_HOST', 'tru-db.thairung.co.th'),
+            'port'           => env('DB_ORACLE_PORT', '1521'),
+            'database'       => env('DB_ORACLE_DATABASE', 'PROD'),
+            'service_name'   => env('DB_ORACLE_SERVICE_NAME', ''),
+            'username'       => env('DB_ORACLE_USERNAME', 'apps'),
+            'password'       => env('DB_ORACLE_PASSWORD', 'apps'),
+            'charset'        => env('DB_ORACLE_CHARSET', 'AL32UTF8'),
+            'prefix'         => env('DB_ORACLE_PREFIX', ''),
+            'prefix_schema'  => env('DB_SCHEMA_PREFIX', ''),
+            'edition'        => env('DB_EDITION', 'ora$base'),
+            'server_version' => env('DB_SERVER_VERSION', '11g'),
+            'load_balance'   => env('DB_LOAD_BALANCE', 'yes'),
+            'dynamic'        => [],
+        ],
 
     ],
 
@@ -125,7 +142,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [

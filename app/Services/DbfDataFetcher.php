@@ -22,8 +22,8 @@ class DbfDataFetcher
             'password' => env('FTP_PASSWORD'),
             'root' => env('FTP_ROOT'),
             'port' => (int) env('FTP_PORT', 21),
-            'passive' => env('FTP_PASSIVE', true),
-            'ssl' => env('FTP_SSL', false),
+            'passive' => filter_var(env('FTP_PASSIVE', true), FILTER_VALIDATE_BOOLEAN),
+            'ssl' => filter_var(env('FTP_SSL', false), FILTER_VALIDATE_BOOLEAN),
             'timeout' => (int) env('FTP_TIMEOUT', 30),
             ])
         );
@@ -90,25 +90,15 @@ class DbfDataFetcher
         $this->syncTable(Bktrn::class, $data['bktrn.dbf'], ['chqnum']);
         $this->syncTable(Aptrn::class, $data['aptrn.dbf'], ['refnum']);
     }
+    
     protected function syncTable($modelClass, array $data, array $uniqueKeys)
     {
-    // foreach ($data as $record) {
-    //     $uniqueCriteria = [];
-    //     foreach ($uniqueKeys as $key) {
-    //         $uniqueCriteria[$key] = $record[$key];
-    //     }
+        // Truncate the table
+        $modelClass::truncate();
 
-    //     $modelClass::updateOrCreate(
-    //         $uniqueCriteria, // unique keys to find the record
-    //         $record // data to update or insert
-    //     );
-    // }
-    // Truncate the table
-    $modelClass::truncate();
-
-    // Insert data into the table
-    foreach ($data as $record) {
-        $modelClass::create($record);
+        // Insert data into the table
+        foreach ($data as $record) {
+            $modelClass::create($record);
+        }
     }
-}
 }
