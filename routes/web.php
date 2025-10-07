@@ -17,11 +17,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get("",fn()=>to_route('dashboard'));
+Route::get("", fn() => to_route('dashboard'));
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+// เพิ่ม route สำหรับ Oracle Dashboard
+Route::view('oracle', 'oracle')
+    ->middleware(['auth', 'verified'])
+    ->name('oracle');
 
 Route::view('profile', 'profile')
     ->middleware(['auth'])

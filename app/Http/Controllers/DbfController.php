@@ -17,7 +17,7 @@ class DbfController extends Controller
                 'host' => '129.200.10.5', // FTP server address
                 'username' => 'admin', // FTP username
                 'password' => 'thairungall', // FTP password
-                'root' => '/TVS66', // Path on the FTP server to the DBF directory
+                'root' => '/TVS67', // Path on the FTP server to the DBF directory
                 'port' => 21, // FTP port (default is 21)
                 'passive' => true, // Use passive mode
                 'ssl' => false, // Use SSL if needed
