@@ -44,78 +44,25 @@
 
                             <!-- Enhanced Form Grid -->
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-    
-    <!-- Organization Selection - เดิม -->
-    <div class="space-y-3">
-        <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-            <div class="w-5 h-5 bg-gradient-to-br from-orange-400 to-orange-500 rounded flex items-center justify-center">
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            <span>Organization</span>
-        </label>
-        <div class="relative">
-            <select wire:model.live="orgId"
-                class="w-full px-5 py-4 border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl shadow-sm focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 appearance-none cursor-pointer hover:border-gray-300 dark:hover:border-slate-500">
-                @foreach($orgOptions as $value => $label)
-                <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-    </div>
-
-    <!-- ✅ เพิ่ม Bank Account Selection - ใหม่ -->
-    <div class="space-y-3">
-        <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-            <div class="w-5 h-5 bg-gradient-to-br from-green-400 to-green-500 rounded flex items-center justify-center">
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
-                </svg>
-            </div>
-            <span>Debit Account</span>
-            @if(count($availableBankAccounts) > 1)
-            <span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs rounded-full">
-                {{ count($availableBankAccounts) }} accounts
-            </span>
-            @endif
-        </label>
-        <div class="relative">
-            @if(empty($availableBankAccounts))
-                <!-- ไม่มีบัญชี -->
-                <div class="w-full px-5 py-4 border-2 border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl">
-                    <div class="flex items-center space-x-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="text-sm font-medium">No bank account found</span>
-                    </div>
-                </div>
-            @else
-                <!-- มีบัญชี - แสดง dropdown -->
-                <select wire:model="selectedBankAccountId"
-                    class="w-full px-5 py-4 border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl shadow-sm focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 appearance-none cursor-pointer hover:border-gray-300 dark:hover:border-slate-500">
-                    @foreach($availableBankAccounts as $account)
-                    <option value="{{ $account['id'] }}">
-                        {{ $account['label'] }}
-                        @if($account['is_default'])
-                        ⭐
-                        @endif
-                    </option>
-                    @endforeach
-                </select>
-                
-            @endif
-        </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
-            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-            </svg>
-            <span>Debit account for CU27 export</span>
-        </p>
-    </div>
-
+                                <!-- Organization Selection -->
+                                <div class="space-y-3">
+                                    <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        <div class="w-5 h-5 bg-gradient-to-br from-orange-400 to-orange-500 rounded flex items-center justify-center">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <span>Organization</span>
+                                    </label>
+                                    <div class="relative">
+                                        <select wire:model="orgId"
+                                            class="w-full px-5 py-4 border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl shadow-sm focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 appearance-none cursor-pointer hover:border-gray-300 dark:hover:border-slate-500">
+                                            @foreach($orgOptions as $value => $label)
+                                            <option value="{{ $value }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
 
                                 <!-- Enhanced Date Input -->
                                 <div class="space-y-3">

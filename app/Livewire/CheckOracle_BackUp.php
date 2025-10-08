@@ -7,7 +7,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
-use App\Models\UobBankAccount; // ✅ เพิ่มบรรทัดนี้
 
 trait SimpleAWTMapping
 {
@@ -844,9 +843,7 @@ class CheckOracle extends Component
     public $selectAllChecks = false; // สถานะ Select All checkbox
     public $checkStart; // ✅ เพิ่มตัวแปรนี้
     public $checkEnd; // ✅ เพิ่มตัวแปรนี้
-    // ✅ เพิ่ม properties ใหม่สำหรับบัญชีธนาคาร
-    public $selectedBankAccountId;
-    public $availableBankAccounts = [];
+    // เพิ่ม property สำหรับควบคุม polling
     public $isProcessing = false;
     public $shouldContinue = true;
     public $loadingStep = 0;
@@ -876,149 +873,15 @@ class CheckOracle extends Component
     public function mount()
     {
         $this->oracleData = collect();
+        // ✅ Initialize with today's date
         $this->selectedDate = now()->format('Y-m-d');
-        
-        // Load organizations
+        // ✅ Load organizations จาก Oracle ก่อน
         $this->loadOrgOptionsFromOracle();
-        
-        // Load user options
+        // Load user options from Oracle
         $this->loadUserOptions();
-        
-        // ✅ เพิ่มบรรทัดนี้ - Load bank accounts for initial org
-        $this->loadBankAccountsForOrg();
-        
-        // Initialize from ERP parameters
+        // ตรวจสอบ parameters จาก ERP ที่ส่งมาผ่าน URL หรือ request
         $this->initializeFromERP();
     }
-    /**
-     * ✅ Load bank accounts for selected organization
-     */
-    public function loadBankAccountsForOrg()
-    {
-        try {
-            $accounts = UobBankAccount::getOrgAccounts($this->orgId);
-            
-            if ($accounts->isEmpty()) {
-                Log::warning("No active bank accounts found for org_id: {$this->orgId}");
-                $this->availableBankAccounts = [];
-                $this->selectedBankAccountId = null;
-                
-                session()->flash('warning', "No bank accounts configured for this organization. Please contact administrator.");
-                return;
-            }
-            
-            // Convert to array for dropdown
-            $this->availableBankAccounts = $accounts->map(function($account) {
-                return [
-                    'id' => $account->id,
-                    'label' => $account->display_name,
-                    'account_number' => $account->account_number,
-                    'branch_code' => $account->branch_code,
-                    'bank_code' => $account->bank_code,
-                    'is_default' => $account->is_default
-                ];
-            })->toArray();
-            
-            // Auto-select default account
-            $defaultAccount = collect($this->availableBankAccounts)->firstWhere('is_default', 1);
-            $this->selectedBankAccountId = $defaultAccount['id'] ?? ($this->availableBankAccounts[0]['id'] ?? null);
-            
-            Log::info("Loaded bank accounts for org_id: {$this->orgId}", [
-                'total_accounts' => count($this->availableBankAccounts),
-                'selected_id' => $this->selectedBankAccountId,
-                'default_account' => $defaultAccount['label'] ?? 'N/A'
-            ]);
-            
-        } catch (Exception $e) {
-            Log::error("Failed to load bank accounts: " . $e->getMessage(), [
-                'org_id' => $this->orgId,
-                'exception' => $e->getTraceAsString()
-            ]);
-            
-            $this->availableBankAccounts = [];
-            $this->selectedBankAccountId = null;
-            
-            session()->flash('error', 'Failed to load bank accounts. Please try again.');
-        }
-    }
-    
-    /**
-     * ✅ Listener - when org changes, reload bank accounts
-     */
-    public function updatedOrgId($value)
-    {
-        Log::info("Organization changed", [
-            'from' => $this->orgId,
-            'to' => $value
-        ]);
-        
-        $this->loadBankAccountsForOrg();
-    }
-    
-/**
- * ✅ Get debit account information for CU27 export
- * 
- * @return array
- */
-private function getDebitAccountInfo()
-{
-    if (empty($this->selectedBankAccountId)) {
-        Log::warning("No bank account selected for export", [
-            'org_id' => $this->orgId
-        ]);
-        
-        return [
-            'bank_code' => '024',
-            'branch_code' => '',
-            'account_number' => '',
-        ];
-    }
-    
-    try {
-        $account = UobBankAccount::getAccountById($this->selectedBankAccountId);
-        
-        if (!$account) {
-            Log::error("Bank account not found", [
-                'account_id' => $this->selectedBankAccountId,
-                'org_id' => $this->orgId
-            ]);
-            
-            return [
-                'bank_code' => '024',
-                'branch_code' => '',
-                'account_number' => '',
-            ];
-        }
-        
-        Log::info("Using bank account for CU27 export", [
-            'account_id' => $account->id,
-            'org_id' => $account->org_id,
-            'org_name' => $account->org_name,
-            'account_number' => $account->account_number,
-            'branch_code' => $account->branch_code,
-            'is_default' => $account->is_default
-        ]);
-        
-        return [
-            'bank_code' => $account->bank_code,
-            'branch_code' => $account->branch_code,
-            'account_number' => $account->account_number,
-        ];
-        
-    } catch (Exception $e) {
-        Log::error("Error getting debit account info", [
-            'account_id' => $this->selectedBankAccountId,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        
-        return [
-            'bank_code' => '024',
-            'branch_code' => '',
-            'account_number' => '',
-        ];
-    }
-}
     public function selectAllChecks()
     {
         $uniqueChecks = $this->oracleData
@@ -1520,473 +1383,431 @@ private function getDebitAccountInfo()
         $this->tempQueryParams = [];
     }
     // 🎯 แก้ไขฟังก์ชัน exportOracleCU27() ให้เรียบง่ายขึ้น
-// ✅ ส่วนที่ 1: แก้ไข exportOracleCU27() - ใส่ข้อมูลบัญชีลงใน CU27
-public function exportOracleCU27()
-{
-    if ($this->oracleData->isEmpty()) {
-        session()->flash('error', 'No Oracle data to export. Please search for data first.');
-        return;
-    }
-    
-    if (empty($this->selectedChecks)) {
-        session()->flash('error', 'No checks selected for export. Please select at least one check number.');
-        return;
-    }
-    
-    // ✅ ตรวจสอบว่าเลือกบัญชีธนาคารหรือยัง
-    if (empty($this->selectedBankAccountId)) {
-        session()->flash('error', 'Please select a bank account before exporting.');
-        return;
-    }
-
-    $dataToExport = $this->getSelectedData();
-    
-    if ($dataToExport->isEmpty()) {
-        session()->flash('error', 'No data found for selected check numbers.');
-        return;
-    }
-
-    if ($dataToExport->count() > $this->maxRecordLimit) {
-        session()->flash('error', 'Too many records to export (' . number_format($dataToExport->count()) . '). Maximum allowed: ' . number_format($this->maxRecordLimit) . '. Please reduce your selection.');
-        return;
-    }
-
-    try {
-        $this->setMemoryLimits($dataToExport->count());
-        $selectedDate = Carbon::parse($this->selectedDate);
-        
-        // ✅ ดึงข้อมูลบัญชีธนาคารที่เลือก
-        $debitAccountInfo = $this->getDebitAccountInfo();
-        
-        // ✅ ตรวจสอบว่าได้ข้อมูลบัญชีครบถ้วน
-        if (empty($debitAccountInfo['account_number'])) {
-            session()->flash('error', 'Invalid bank account. Please select a valid account.');
-            Log::error('Export failed: Invalid debit account info', [
-                'selected_account_id' => $this->selectedBankAccountId,
-                'debit_info' => $debitAccountInfo
-            ]);
+    public function exportOracleCU27()
+    {
+        if ($this->oracleData->isEmpty()) {
+            session()->flash('error', 'No Oracle data to export. Please search for data first.');
             return;
         }
-        
-        $output = '';
-
-        // Helper Functions
-        $handleThaiText = function ($text, $maxLength = null) {
-            if (empty($text)) return '';
-            $text = trim($text);
-            $text = str_replace(["\r", "\n", "\t"], ' ', $text);
-            $text = preg_replace('/\s+/', ' ', $text);
-            return $maxLength ? mb_substr($text, 0, $maxLength, 'UTF-8') : $text;
-        };
-
-        $formatAmount = function ($amount, $length = 20) {
-            $numericValue = (float)str_replace(',', '', $amount ?? 0);
-            $formatted = number_format($numericValue, 2, '.', '');
-            return str_pad($formatted, $length, '0', STR_PAD_LEFT);
-        };
-
-        $padText = function ($text, $length, $padChar = ' ', $padType = STR_PAD_RIGHT) {
-            if (empty($text)) $text = '';
-            $currentLength = mb_strlen($text, 'UTF-8');
-            if ($currentLength >= $length) {
-                return mb_substr($text, 0, $length, 'UTF-8');
-            }
-            $padLength = $length - $currentLength;
-            $padding = str_repeat($padChar, $padLength);
-            return $padType === STR_PAD_RIGHT ? $text . $padding : $padding . $text;
-        };
-
-        $validateEmail = function ($email) {
-            if (empty($email)) return '';
-            $email = trim($email);
-            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $email;
-            }
-            return '';
-        };
-
-        // GROUP DATA BY CHECK NUMBER
-        $groupedData = $dataToExport->groupBy('your_reference');
-        
-        foreach ($groupedData as $checkNumber => $records) {
-            $mainRecordForCheck = $records->first();
-            
-            // คำนวณ WHT ที่ถูกต้องตาม CU27 Spec
-            $invoicesData = $this->calculateCorrectInvoiceAmounts($records);
-            $totalWHTForCheck = $invoicesData['total_wht'];
-            $totalBaseForCheck = $invoicesData['total_base'];
-            $correctedWHTRate = $invoicesData['weighted_rate'];
-            
-            // ดึงข้อมูล WHT Rates ทั้งหมดสำหรับ CU27
-            $whtRatesData = $this->extractWHTRatesFromInvoices($invoicesData['invoices']);
-
-            // Process Email & Address
-            $address1 = trim($mainRecordForCheck->address_line1 ?? '');
-            $email_mixed = trim($mainRecordForCheck->email_address ?? '');
-            $email_vs_only = trim($mainRecordForCheck->vs_email_address_only ?? '');
-            $validEmailFor1337 = $validateEmail($email_vs_only);
-            $hasRealAddress = !empty($address1) && $address1 !== '' && $address1 !== '.';
-            $mailAddr1Value = $hasRealAddress ? $address1 : $email_mixed;
-
-            // CU27 Fields สำหรับ Transaction Line
-            $F_rec_iden = $padText('TXN', 3);
-            $F_rec_iden1 = $padText('CH', 10);
-            $F_benefi_name = $padText($handleThaiText($mainRecordForCheck->benefi_name ?? '', 150), 150);
-            $F_benefi_addr1 = $padText('', 70);
-            $F_benefi_addr2 = $padText('', 70);
-            $F_benefi_addr3 = $padText('', 70);
-            $F_benefi_addr4 = $padText('', 70);
-            $F_benefi_site = $padText('', 70);
-            $F_mail_to_name = $padText($handleThaiText($mainRecordForCheck->benefi_name ?? '', 150), 150);
-            $F_mail_addr1 = $padText($handleThaiText($mailAddr1Value, 70), 70);
-            $F_mail_addr2 = $padText($handleThaiText($mainRecordForCheck->address_line2 ?? '', 70), 70);
-            $F_mail_addr3 = $padText($handleThaiText($mainRecordForCheck->address_line3 ?? '', 70), 70);
-            $F_mail_addr4 = $padText('', 70);
-            $F_zip_code = $padText($handleThaiText($mainRecordForCheck->zip_code ?? '', 10), 10);
-            $F_invoice_amount = $padText('', 20);
-            $F_vat_amount = $padText('', 20);
-            $F_wht_amount = $padText('', 20);
-            $F_ben_charged = $padText('OUR', 20);
-            $F_check_amt = $padText($formatAmount($mainRecordForCheck->check_amt ?? 0, 20), 20);
-            $F_currency = $padText('THB', 10);
-            $F_your_reference = $padText($handleThaiText($mainRecordForCheck->your_reference ?? '', 35), 35);
-            $F_check_date = $padText($mainRecordForCheck->check_date ?? '', 8);
-            
-            $paymentDetail = $handleThaiText($mainRecordForCheck->payment_details1 ?? '', 35);
-            $F_payment_details1 = $padText($paymentDetail, 35);
-            $F_payment_details2 = $padText('', 35);
-            $F_payment_details3 = $padText('', 35);
-            $F_payment_details4 = $padText('', 35);
-
-            // ใช้ค่าจาก Oracle โดยตรง แทนการ hardcode
-            $exchangeDoc = trim($mainRecordForCheck->payment_details1 ?? '');
-            if (empty($exchangeDoc)) {
-                $exchangeDoc = '';
-            }
-            $F_exchange_document = $padText($exchangeDoc, 35);
-
-            $deliveryMethod = trim($mainRecordForCheck->delivery_method ?? 'RT');
-            $F_delivery_method = $padText($deliveryMethod, 5);
-            
-            $paymentLocation = trim($mainRecordForCheck->payment_location ?? '');
-            if ($deliveryMethod === 'OC' && empty($paymentLocation)) {
-                $paymentLocation = '';
-            }
-            $F_payment_location = $padText($handleThaiText($paymentLocation, 35), 35);
-
-            $F_preadvise_method = $padText('', 5);
-            $F_fax_number = $padText('', 10);
-            $F_email_address = $padText($validEmailFor1337, 120);
-            $F_ivr_code = $padText('', 10);
-            $F_sms_number = $padText('', 20);
-            $F_charge_indicator = $padText('OUR', 12);
-            $F_bene_tax_id = $padText($handleThaiText($mainRecordForCheck->vendor_tax_id ?? '', 20), 20);
-            $F_personal_id = $padText('', 20);
-
-            // WHT Type Field
-            $whtType = '';
-            if ($totalWHTForCheck > 0) {
-                $firstInvoice = $invoicesData['invoices']->first();
-                if ($firstInvoice && !empty($firstInvoice['awt_name'])) {
-                    $awtName = $firstInvoice['awt_name'];
-                    $whtRate = $firstInvoice['wht_rate'] ?? 0;
-                    $isJuristicPerson = (bool) preg_match('/-c$/i', trim($awtName));
-                    $whtType = $isJuristicPerson ? '53' : '03';
-                    
-                    Log::info("WHT Type Detection in Export", [
-                        'check_number' => $checkNumber,
-                        'awt_name' => $awtName,
-                        'wht_rate' => $whtRate,
-                        'determined_wht_type' => $whtType,
-                        'total_wht' => $totalWHTForCheck
-                    ]);
-                } else {
-                    $whtType = '53';
-                    Log::warning("No AWT name found, defaulting to WHT type 53", [
-                        'check_number' => $checkNumber,
-                        'total_wht' => $totalWHTForCheck
-                    ]);
-                }
-            }
-            $F_wht_type = $padText($whtType, 5);
-
-            // Tax Rate Fields
-            $F_taxable_amount1 = $padText($this->formatWHTAmount($whtRatesData['rate1']['taxable_amount'] ?? 0), 20);
-            $F_tax_type1 = $padText($whtRatesData['rate1']['tax_type'] ?? '', 2);
-            $F_tax_desc1 = $padText($handleThaiText($whtRatesData['rate1']['description'] ?? '', 35), 35);
-            $F_tax_rate1 = $padText($this->formatWHTRate($whtRatesData['rate1']['rate'] ?? 0), 5);
-            $F_tax_amount1 = $padText($this->formatWHTAmount($whtRatesData['rate1']['tax_amount'] ?? 0), 20);
-
-            $F_taxable_amount2 = $padText($this->formatWHTAmount($whtRatesData['rate2']['taxable_amount'] ?? 0), 20);
-            $F_tax_type2 = $padText($whtRatesData['rate2']['tax_type'] ?? '', 2);
-            $F_tax_desc2 = $padText($handleThaiText($whtRatesData['rate2']['description'] ?? '', 35), 35);
-            $F_tax_rate2 = $padText($this->formatWHTRate($whtRatesData['rate2']['rate'] ?? 0), 5);
-            $F_tax_amount2 = $padText($this->formatWHTAmount($whtRatesData['rate2']['tax_amount'] ?? 0), 20);
-
-            $F_taxable_amount3 = $padText($this->formatWHTAmount($whtRatesData['rate3']['taxable_amount'] ?? 0), 20);
-            $F_tax_type3 = $padText($whtRatesData['rate3']['tax_type'] ?? '', 2);
-            $F_tax_desc3 = $padText($handleThaiText($whtRatesData['rate3']['description'] ?? '', 35), 35);
-            $F_tax_rate3 = $padText($this->formatWHTRate($whtRatesData['rate3']['rate'] ?? 0), 5);
-            $F_tax_amount3 = $padText($this->formatWHTAmount($whtRatesData['rate3']['tax_amount'] ?? 0), 20);
-
-            $F_taxable_amount4 = $padText($this->formatWHTAmount($whtRatesData['rate4']['taxable_amount'] ?? 0), 20);
-            $F_tax_type4 = $padText($whtRatesData['rate4']['tax_type'] ?? '', 2);
-            $F_tax_desc4 = $padText($handleThaiText($whtRatesData['rate4']['description'] ?? '', 35), 35);
-            $F_tax_rate4 = $padText($this->formatWHTRate($whtRatesData['rate4']['rate'] ?? 0), 5);
-            $F_tax_amount4 = $padText($this->formatWHTAmount($whtRatesData['rate4']['tax_amount'] ?? 0), 20);
-
-            $F_taxable_amount5 = $padText($this->formatWHTAmount($whtRatesData['rate5']['taxable_amount'] ?? 0), 20);
-            $F_tax_type5 = $padText($whtRatesData['rate5']['tax_type'] ?? '', 2);
-            $F_tax_desc5 = $padText($handleThaiText($whtRatesData['rate5']['description'] ?? '', 35), 35);
-            $F_tax_rate5 = $padText($this->formatWHTRate($whtRatesData['rate5']['rate'] ?? 0), 5);
-            $F_tax_amount5 = $padText($this->formatWHTAmount($whtRatesData['rate5']['tax_amount'] ?? 0), 20);
-
-            $F_wht_doc_no = $padText('', 20);
-            $F_client_name = $padText('', 35);
-            $F_client_address = $padText('', 105);
-            $F_wht_seq_no = $padText('', 10);
-            $F_payment_condition = $padText('', 1);
-            $F_third_party_name = $padText('', 150);
-            $F_third_party_addr1 = $padText('', 70);
-            $F_third_party_addr2 = $padText('', 70);
-            $F_third_party_addr3 = $padText('', 35);
-            $F_third_party_addr4 = $padText('', 35);
-            
-            // ✅ ใช้ข้อมูลบัญชีที่ดึงมาจาก getDebitAccountInfo()
-            $F_debit_bank_code = $padText($debitAccountInfo['bank_code'], 10);
-            $F_debit_branch_code = $padText($debitAccountInfo['branch_code'], 10);
-            $F_debit_ac_no = $padText($debitAccountInfo['account_number'], 20);
-            
-            $F_debit_country_code = $padText('', 2);
-            $F_transaction_type = $padText('', 3);
-            $F_customer_code = $padText('', 20);
-            $F_customer_name = $padText('', 150);
-            $F_customer_acro = $padText('', 20);
-            $F_customer_addr1 = $padText('', 70);
-            $F_customer_addr2 = $padText('', 70);
-            $F_customer_addr3 = $padText('', 35);
-            $F_customer_addr4 = $padText('', 35);
-            $F_cust_ref1 = $padText('', 35);
-            $F_cust_ref2 = $padText('', 35);
-            $F_cust_ref3 = $padText('', 35);
-            $F_cust_ref4 = $padText('', 35);
-            $F_cust_ref5 = $padText('', 35);
-            $F_credit_bank_code = $padText('', 10);
-            $F_credit_branch_code = $padText('', 10);
-            $F_credit_ac_no = $padText('', 20);
-            $F_credit_country_code = $padText('', 2);
-            $F_optional_service = $padText('', 2);
-            $F_sender_name = $padText('', 70);
-            $F_sender_correspondent = $padText('', 70);
-            $F_receiving_bank_name = $padText('', 70);
-            $F_trx_ref1 = $padText('', 35);
-            $F_trx_ref2 = $padText('', 35);
-            $F_trx_ref3 = $padText('', 35);
-            $F_trx_ref4 = $padText('', 35);
-            $F_trx_ref5 = $padText('', 35);
-            $F_trx_ref6 = $padText('', 35);
-            $F_on_behalf_tax_id = $padText('', 20);
-            $F_on_behalf_name = $padText('', 150);
-            $F_on_behalf_address = $padText('', 210);
-
-            // Build complete CU27 line
-            $cu27Line =
-                $F_rec_iden .
-                $F_rec_iden1 .
-                $F_benefi_name .
-                $F_benefi_addr1 .
-                $F_benefi_addr2 .
-                $F_benefi_addr3 .
-                $F_benefi_addr4 .
-                $F_benefi_site .
-                $F_mail_to_name .
-                $F_mail_addr1 .
-                $F_mail_addr2 .
-                $F_mail_addr3 .
-                $F_mail_addr4 .
-                $F_zip_code .
-                $F_invoice_amount .
-                $F_vat_amount .
-                $F_wht_amount .
-                $F_ben_charged .
-                $F_check_amt .
-                $F_currency .
-                $F_your_reference .
-                $F_check_date .
-                $F_payment_details1 .
-                $F_payment_details2 .
-                $F_payment_details3 .
-                $F_payment_details4 .
-                $F_exchange_document .
-                $F_delivery_method .
-                $F_payment_location .
-                $F_preadvise_method .
-                $F_fax_number .
-                $F_email_address .
-                $F_ivr_code .
-                $F_sms_number .
-                $F_charge_indicator .
-                $F_bene_tax_id .
-                $F_personal_id .
-                $F_wht_type .
-                $F_taxable_amount1 .
-                $F_tax_type1 .
-                $F_tax_desc1 .
-                $F_tax_rate1 .
-                $F_tax_amount1 .
-                $F_taxable_amount2 .
-                $F_tax_type2 .
-                $F_tax_desc2 .
-                $F_tax_rate2 .
-                $F_tax_amount2 .
-                $F_taxable_amount3 .
-                $F_tax_type3 .
-                $F_tax_desc3 .
-                $F_tax_rate3 .
-                $F_tax_amount3 .
-                $F_taxable_amount4 .
-                $F_tax_type4 .
-                $F_tax_desc4 .
-                $F_tax_rate4 .
-                $F_tax_amount4 .
-                $F_taxable_amount5 .
-                $F_tax_type5 .
-                $F_tax_desc5 .
-                $F_tax_rate5 .
-                $F_tax_amount5 .
-                $F_wht_doc_no .
-                $F_client_name .
-                $F_client_address .
-                $F_wht_seq_no .
-                $F_payment_condition .
-                $F_third_party_name .
-                $F_third_party_addr1 .
-                $F_third_party_addr2 .
-                $F_third_party_addr3 .
-                $F_third_party_addr4 .
-                $F_debit_bank_code .
-                $F_debit_branch_code .
-                $F_debit_ac_no .
-                $F_debit_country_code .
-                $F_transaction_type .
-                $F_customer_code .
-                $F_customer_name .
-                $F_customer_acro .
-                $F_customer_addr1 .
-                $F_customer_addr2 .
-                $F_customer_addr3 .
-                $F_customer_addr4 .
-                $F_cust_ref1 .
-                $F_cust_ref2 .
-                $F_cust_ref3 .
-                $F_cust_ref4 .
-                $F_cust_ref5 .
-                $F_credit_bank_code .
-                $F_credit_branch_code .
-                $F_credit_ac_no .
-                $F_credit_country_code .
-                $F_optional_service .
-                $F_sender_name .
-                $F_sender_correspondent .
-                $F_receiving_bank_name .
-                $F_trx_ref1 .
-                $F_trx_ref2 .
-                $F_trx_ref3 .
-                $F_trx_ref4 .
-                $F_trx_ref5 .
-                $F_trx_ref6 .
-                $F_on_behalf_tax_id .
-                $F_on_behalf_name .
-                $F_on_behalf_address;
-
-            $output .= $cu27Line . "\n";
-
-            // Process invoices และแสดง amounts ที่ถูกต้อง
-            $invoiceLines = $this->generateInvoiceLinesFromCalculatedData($invoicesData['invoices']);
-            if (!empty($invoiceLines)) {
-                $output .= $invoiceLines;
-            }
+        if (empty($this->selectedChecks)) {
+            session()->flash('error', 'No checks selected for export. Please select at least one check number.');
+            return;
         }
-
-        // Thai encoding conversion
+        $dataToExport = $this->getSelectedData();
+        if ($dataToExport->isEmpty()) {
+            session()->flash('error', 'No data found for selected check numbers.');
+            return;
+        }
+        if ($dataToExport->count() > $this->maxRecordLimit) {
+            session()->flash('error', 'Too many records to export (' . number_format($dataToExport->count()) . '). Maximum allowed: ' . number_format($this->maxRecordLimit) . '. Please reduce your selection.');
+            return;
+        }
         try {
-            if (mb_check_encoding($output, 'UTF-8')) {
-                $ansiData = @iconv('UTF-8', 'Windows-874//IGNORE', $output);
-                if ($ansiData === false) {
-                    $ansiData = @iconv('UTF-8', 'TIS-620//IGNORE', $output);
+            $this->setMemoryLimits($dataToExport->count());
+            $selectedDate = Carbon::parse($this->selectedDate);
+            $output = '';
+            // Helper Functions
+            $handleThaiText = function ($text, $maxLength = null) {
+                if (empty($text)) return '';
+                $text = trim($text);
+                $text = str_replace(["\r", "\n", "\t"], ' ', $text);
+                $text = preg_replace('/\s+/', ' ', $text);
+                return $maxLength ? mb_substr($text, 0, $maxLength, 'UTF-8') : $text;
+            };
+            $formatAmount = function ($amount, $length = 20) {
+                $numericValue = (float)str_replace(',', '', $amount ?? 0);
+                $formatted = number_format($numericValue, 2, '.', '');
+                return str_pad($formatted, $length, '0', STR_PAD_LEFT);
+            };
+            $padText = function ($text, $length, $padChar = ' ', $padType = STR_PAD_RIGHT) {
+                if (empty($text)) $text = '';
+                $currentLength = mb_strlen($text, 'UTF-8');
+                if ($currentLength >= $length) {
+                    return mb_substr($text, 0, $length, 'UTF-8');
                 }
-                if ($ansiData === false) {
-                    $ansiData = "\xEF\xBB\xBF" . $output;
+                $padLength = $length - $currentLength;
+                $padding = str_repeat($padChar, $padLength);
+                return $padType === STR_PAD_RIGHT ? $text . $padding : $padding . $text;
+            };
+            $validateEmail = function ($email) {
+                if (empty($email)) return '';
+                $email = trim($email);
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return $email;
                 }
-            } else {
+                return '';
+            };
+            // GROUP DATA BY CHECK NUMBER
+            $groupedData = $dataToExport->groupBy('your_reference');
+            foreach ($groupedData as $checkNumber => $records) {
+                $mainRecordForCheck = $records->first();
+                //การคำนวณ WHT ที่ถูกต้องตาม CU27 Spec
+                $invoicesData = $this->calculateCorrectInvoiceAmounts($records);
+                $totalWHTForCheck = $invoicesData['total_wht'];
+                $totalBaseForCheck = $invoicesData['total_base'];
+                $correctedWHTRate = $invoicesData['weighted_rate'];
+                //ดึงข้อมูล WHT Rates ทั้งหมดสำหรับ CU27
+                $whtRatesData = $this->extractWHTRatesFromInvoices($invoicesData['invoices']);
+                // Process Email & Address
+                $address1 = trim($mainRecordForCheck->address_line1 ?? '');
+                $email_mixed = trim($mainRecordForCheck->email_address ?? '');
+                $email_vs_only = trim($mainRecordForCheck->vs_email_address_only ?? '');
+                $validEmailFor1337 = $validateEmail($email_vs_only);
+                $hasRealAddress = !empty($address1) && $address1 !== '' && $address1 !== '.';
+                $mailAddr1Value = $hasRealAddress ? $address1 : $email_mixed;
+                // CU27 Fields สำหรับ Transaction Line
+                $F_rec_iden = $padText('TXN', 3);
+                $F_rec_iden1 = $padText('CH', 10);
+                $F_benefi_name = $padText($handleThaiText($mainRecordForCheck->benefi_name ?? '', 150), 150);
+                $F_benefi_addr1 = $padText('', 70);
+                $F_benefi_addr2 = $padText('', 70);
+                $F_benefi_addr3 = $padText('', 70);
+                $F_benefi_addr4 = $padText('', 70);
+                $F_benefi_site = $padText('', 70);
+                $F_mail_to_name = $padText($handleThaiText($mainRecordForCheck->benefi_name ?? '', 150), 150);
+                $F_mail_addr1 = $padText($handleThaiText($mailAddr1Value, 70), 70);
+                $F_mail_addr2 = $padText($handleThaiText($mainRecordForCheck->address_line2 ?? '', 70), 70);
+                $F_mail_addr3 = $padText($handleThaiText($mainRecordForCheck->address_line3 ?? '', 70), 70);
+                $F_mail_addr4 = $padText('', 70);
+                $F_zip_code = $padText($handleThaiText($mainRecordForCheck->zip_code ?? '', 10), 10);
+                $F_invoice_amount = $padText('', 20);
+                $F_vat_amount = $padText('', 20);
+                $F_wht_amount = $padText('', 20); // 🔥 บังคับให้เป็นค่าว่างเสมอ
+                $F_ben_charged = $padText('OUR', 20);
+                $F_check_amt = $padText($formatAmount($mainRecordForCheck->check_amt ?? 0, 20), 20);
+                $F_currency = $padText('THB', 10);
+                $F_your_reference = $padText($handleThaiText($mainRecordForCheck->your_reference ?? '', 35), 35);
+                $F_check_date = $padText($mainRecordForCheck->check_date ?? '', 8);
+                $paymentDetail = $handleThaiText($mainRecordForCheck->payment_details1 ?? '', 35);
+                $F_payment_details1 = $padText($paymentDetail, 35);
+                $F_payment_details2 = $padText('', 35);
+                $F_payment_details3 = $padText('', 35);
+                $F_payment_details4 = $padText('', 35);
+                // 🎯 ใช้ค่าจาก Oracle โดยตรง แทนการ hardcode
+                $exchangeDoc = trim($mainRecordForCheck->payment_details1 ?? '');
+                if (empty($exchangeDoc)) {
+                    // ถ้าไม่มีข้อมูลใน Oracle ให้ใช้ default
+                    $exchangeDoc = '';
+                }
+                $F_exchange_document = $padText($exchangeDoc, 35);
+                $deliveryMethod = trim($mainRecordForCheck->delivery_method ?? 'RT');
+                $F_delivery_method = $padText($deliveryMethod, 5);
+                $paymentLocation = trim($mainRecordForCheck->payment_location ?? '');
+                if ($deliveryMethod === 'OC' && empty($paymentLocation)) {
+                    $paymentLocation = '';
+                }
+                $F_payment_location = $padText($handleThaiText($paymentLocation, 35), 35);
+                $F_preadvise_method = $padText('', 5);
+                $F_fax_number = $padText('', 10);
+                $F_email_address = $padText($validEmailFor1337, 120);
+                $F_ivr_code = $padText('', 10);
+                $F_sms_number = $padText('', 20);
+                $F_charge_indicator = $padText('OUR', 12);
+                $F_bene_tax_id = $padText($handleThaiText($mainRecordForCheck->vendor_tax_id ?? '', 20), 20);
+                $F_personal_id = $padText('', 20);
+                //WHT Type Field (Pos: 1539-1543) 
+                $whtType = '';
+
+                if ($totalWHTForCheck > 0) {
+                    $firstInvoice = $invoicesData['invoices']->first();
+                    if ($firstInvoice && !empty($firstInvoice['awt_name'])) {
+                        $awtName = $firstInvoice['awt_name'];
+                        $whtRate = $firstInvoice['wht_rate'] ?? 0;
+
+                        // Check if AWT_NAME has '-c' suffix for company/juristic person
+                        $isJuristicPerson = (bool) preg_match('/-c$/i', trim($awtName));
+
+                        // Set WHT Type based on person type (not rate)
+                        $whtType = $isJuristicPerson ? '53' : '03';  // Company = 53, Individual = 03
+
+                        Log::info("WHT Type Detection in Export", [
+                            'check_number' => $checkNumber,
+                            'awt_name' => $awtName,
+                            'wht_rate' => $whtRate,
+                            'determined_wht_type' => $whtType,
+                            'total_wht' => $totalWHTForCheck
+                        ]);
+                    } else {
+                        // Fallback: if no AWT name, default to 53 (company)
+                        $whtType = '53';
+                        Log::warning("No AWT name found, defaulting to WHT type 53", [
+                            'check_number' => $checkNumber,
+                            'total_wht' => $totalWHTForCheck
+                        ]);
+                    }
+                }
+
+                $F_wht_type = $padText($whtType, 5);
+                // Add logging after the whtRatesData calculation  
+                Log::info("Tax Types in CU27 Export", [
+                    'check_number' => $checkNumber,
+                    'main_wht_type' => $whtType,
+                    'rate1_tax_type' => $whtRatesData['rate1']['tax_type'] ?? '',
+                    'rate2_tax_type' => $whtRatesData['rate2']['tax_type'] ?? '',
+                    'rate3_tax_type' => $whtRatesData['rate3']['tax_type'] ?? '',
+                    'awt_names' => [
+                        'rate1' => $whtRatesData['rate1']['awt_name'] ?? '',
+                        'rate2' => $whtRatesData['rate2']['awt_name'] ?? '',
+                        'rate3' => $whtRatesData['rate3']['awt_name'] ?? ''
+                    ]
+                ]);
+                // ✅ Tax Rate 1 Fields (Positions 1544-1625) - แก้ไขแล้ว
+                $F_taxable_amount1 = $padText($this->formatWHTAmount($whtRatesData['rate1']['taxable_amount'] ?? 0), 20); // ✅ ใช้ taxable_amount ที่ถูกต้อง
+                $F_tax_type1 = $padText($whtRatesData['rate1']['tax_type'] ?? '', 2);
+                $F_tax_desc1 = $padText($handleThaiText($whtRatesData['rate1']['description'] ?? '', 35), 35);
+                $F_tax_rate1 = $padText($this->formatWHTRate($whtRatesData['rate1']['rate'] ?? 0), 5);
+                $F_tax_amount1 = $padText($this->formatWHTAmount($whtRatesData['rate1']['tax_amount'] ?? 0), 20);
+                // 🔥 Tax Rate 2 Fields (Positions 1626-1707) - แก้ไขจาก tax_amount เป็น taxable_amount
+                $F_taxable_amount2 = $padText($this->formatWHTAmount($whtRatesData['rate2']['taxable_amount'] ?? 0), 20); // 🔥 แก้ไขตรงนี้
+                $F_tax_type2 = $padText($whtRatesData['rate2']['tax_type'] ?? '', 2);
+                $F_tax_desc2 = $padText($handleThaiText($whtRatesData['rate2']['description'] ?? '', 35), 35);
+                $F_tax_rate2 = $padText($this->formatWHTRate($whtRatesData['rate2']['rate'] ?? 0), 5);
+                $F_tax_amount2 = $padText($this->formatWHTAmount($whtRatesData['rate2']['tax_amount'] ?? 0), 20);
+                // 🔥 Tax Rate 3 Fields (Positions 1708-1789) - แก้ไขจาก tax_amount เป็น taxable_amount
+                $F_taxable_amount3 = $padText($this->formatWHTAmount($whtRatesData['rate3']['taxable_amount'] ?? 0), 20); // 🔥 แก้ไขตรงนี้
+                $F_tax_type3 = $padText($whtRatesData['rate3']['tax_type'] ?? '', 2);
+                $F_tax_desc3 = $padText($handleThaiText($whtRatesData['rate3']['description'] ?? '', 35), 35);
+                $F_tax_rate3 = $padText($this->formatWHTRate($whtRatesData['rate3']['rate'] ?? 0), 5);
+                $F_tax_amount3 = $padText($this->formatWHTAmount($whtRatesData['rate3']['tax_amount'] ?? 0), 20);
+                // 🔥 Tax Rate 4 Fields (Positions 1790-1871) - แก้ไขจาก tax_amount เป็น taxable_amount
+                $F_taxable_amount4 = $padText($this->formatWHTAmount($whtRatesData['rate4']['taxable_amount'] ?? 0), 20); // 🔥 แก้ไขตรงนี้
+                $F_tax_type4 = $padText($whtRatesData['rate4']['tax_type'] ?? '', 2);
+                $F_tax_desc4 = $padText($handleThaiText($whtRatesData['rate4']['description'] ?? '', 35), 35);
+                $F_tax_rate4 = $padText($this->formatWHTRate($whtRatesData['rate4']['rate'] ?? 0), 5);
+                $F_tax_amount4 = $padText($this->formatWHTAmount($whtRatesData['rate4']['tax_amount'] ?? 0), 20);
+                // 🔥 Tax Rate 5 Fields (Positions 1872-1953) - แก้ไขจาก tax_amount เป็น taxable_amount
+                $F_taxable_amount5 = $padText($this->formatWHTAmount($whtRatesData['rate5']['taxable_amount'] ?? 0), 20); // 🔥 แก้ไขตรงนี้
+                $F_tax_type5 = $padText($whtRatesData['rate5']['tax_type'] ?? '', 2);
+                $F_tax_desc5 = $padText($handleThaiText($whtRatesData['rate5']['description'] ?? '', 35), 35);
+                $F_tax_rate5 = $padText($this->formatWHTRate($whtRatesData['rate5']['rate'] ?? 0), 5);
+                $F_tax_amount5 = $padText($this->formatWHTAmount($whtRatesData['rate5']['tax_amount'] ?? 0), 20);
+                $F_wht_doc_no = $padText('', 20);
+                // $F_client_name = $padText($handleThaiText(mb_substr($mainRecordForCheck->benefi_name ?? '', 0, 35, 'UTF-8'), 35), 35);
+                $F_client_name = $padText('', 35);
+                $clientAddress = $handleThaiText(($mainRecordForCheck->address_line1 ?? '') . ' ' . ($mainRecordForCheck->address_line2 ?? '') . ' ' . ($mainRecordForCheck->address_line3 ?? ''), 105);
+                // $F_client_address = $padText($clientAddress, 105);
+                $F_client_address = $padText('', 105);
+                $F_wht_seq_no = $padText('', 10);
+                $F_payment_condition = $padText('', 1);
+                // $F_third_party_name = $padText($handleThaiText($mainRecordForCheck->benefi_name ?? '', 150), 150);
+                $F_third_party_name = $padText('', 150);
+                $F_third_party_addr1 = $padText('', 70);
+                $F_third_party_addr2 = $padText('', 70);
+                $F_third_party_addr3 = $padText('', 35);
+                $F_third_party_addr4 = $padText('', 35);
+                $F_debit_bank_code = $padText('', 10);
+                $F_debit_branch_code = $padText('', 10);
+                $F_debit_ac_no = $padText('', 20);
+                $F_debit_country_code = $padText('', 2);
+                $F_transaction_type = $padText('', 3);
+                $F_customer_code = $padText('', 20);
+                $F_customer_name = $padText('', 150);
+                $F_customer_acro = $padText('', 20);
+                $F_customer_addr1 = $padText('', 70);
+                $F_customer_addr2 = $padText('', 70);
+                $F_customer_addr3 = $padText('', 35);
+                $F_customer_addr4 = $padText('', 35);
+                $F_cust_ref1 = $padText('', 35);
+                $F_cust_ref2 = $padText('', 35);
+                $F_cust_ref3 = $padText('', 35);
+                $F_cust_ref4 = $padText('', 35);
+                $F_cust_ref5 = $padText('', 35);
+                $F_credit_bank_code = $padText('', 10);
+                $F_credit_branch_code = $padText('', 10);
+                $F_credit_ac_no = $padText('', 20);
+                $F_credit_country_code = $padText('', 2);
+                $F_optional_service = $padText('', 2);
+                $F_sender_name = $padText('', 70);
+                $F_sender_correspondent = $padText('', 70);
+                $F_receiving_bank_name = $padText('', 70);
+                $F_trx_ref1 = $padText('', 35);
+                $F_trx_ref2 = $padText('', 35);
+                $F_trx_ref3 = $padText('', 35);
+                $F_trx_ref4 = $padText('', 35);
+                $F_trx_ref5 = $padText('', 35);
+                $F_trx_ref6 = $padText('', 35);
+                $F_on_behalf_tax_id = $padText('', 20);
+                $F_on_behalf_name = $padText('', 150);
+                $F_on_behalf_address = $padText('', 210);
+                //Build complete CU27 line with CORRECTED WHT Rates (total 3948 characters exactly)
+                $cu27Line =
+                    $F_rec_iden .             // 1-3
+                    $F_rec_iden1 .            // 4-13
+                    $F_benefi_name .          // 14-163
+                    $F_benefi_addr1 .         // 164-233
+                    $F_benefi_addr2 .         // 234-303
+                    $F_benefi_addr3 .         // 304-373
+                    $F_benefi_addr4 .         // 374-443
+                    $F_benefi_site .          // 444-513
+                    $F_mail_to_name .         // 514-663
+                    $F_mail_addr1 .           // 664-733
+                    $F_mail_addr2 .           // 734-803
+                    $F_mail_addr3 .           // 804-873
+                    $F_mail_addr4 .           // 874-943
+                    $F_zip_code .             // 944-953
+                    $F_invoice_amount .       // 954-973
+                    $F_vat_amount .           // 974-993
+                    $F_wht_amount .           // 994-1013 ✅ รวม WHT ทั้งหมด
+                    $F_ben_charged .          // 1014-1033
+                    $F_check_amt .            // 1034-1053
+                    $F_currency .             // 1054-1063
+                    $F_your_reference .       // 1064-1098
+                    $F_check_date .           // 1099-1106
+                    $F_payment_details1 .     // 1107-1141
+                    $F_payment_details2 .     // 1142-1176
+                    $F_payment_details3 .     // 1177-1211
+                    $F_payment_details4 .     // 1212-1246
+                    $F_exchange_document .    // 1247-1281
+                    $F_delivery_method .      // 1282-1286
+                    $F_payment_location .     // 1287-1321
+                    $F_preadvise_method .     // 1322-1326
+                    $F_fax_number .           // 1327-1336
+                    $F_email_address .        // 1337-1456
+                    $F_ivr_code .             // 1457-1466
+                    $F_sms_number .           // 1467-1486
+                    $F_charge_indicator .     // 1487-1498
+                    $F_bene_tax_id .          // 1499-1518
+                    $F_personal_id .          // 1519-1538
+                    $F_wht_type .             // 1539-1543 ✅ 53
+                    //Tax Rate 1 (Positions 1544-1625) - WHT Rate แรก
+                    $F_taxable_amount1 .      // 1544-1563 ✅ Taxable Amount 1
+                    $F_tax_type1 .            // 1564-1565 ✅ Tax Type 1 (03, 05, etc.)
+                    $F_tax_desc1 .            // 1566-1600 ✅ Tax Description 1
+                    $F_tax_rate1 .            // 1601-1605 ✅ Tax Rate 1 (03.00, 05.00, etc.)
+                    $F_tax_amount1 .          // 1606-1625 ✅ Tax Amount 1
+                    //Tax Rate 2 (Positions 1626-1707) - WHT Rate ที่สอง
+                    $F_taxable_amount2 .      // 1626-1645 ✅ Taxable Amount 2
+                    $F_tax_type2 .            // 1646-1647 ✅ Tax Type 2
+                    $F_tax_desc2 .            // 1648-1682 ✅ Tax Description 2
+                    $F_tax_rate2 .            // 1683-1687 ✅ Tax Rate 2
+                    $F_tax_amount2 .          // 1688-1707 ✅ Tax Amount 2
+                    //Tax Rate 3 (Positions 1708-1789) - WHT Rate ที่สาม
+                    $F_taxable_amount3 .      // 1708-1727 ✅ Taxable Amount 3
+                    $F_tax_type3 .            // 1728-1729 ✅ Tax Type 3
+                    $F_tax_desc3 .            // 1730-1764 ✅ Tax Description 3
+                    $F_tax_rate3 .            // 1765-1769 ✅ Tax Rate 3
+                    $F_tax_amount3 .          // 1770-1789 ✅ Tax Amount 3
+                    //Tax Rate 4 (Positions 1790-1871) - WHT Rate ที่สี่
+                    $F_taxable_amount4 .      // 1790-1809 ✅ Taxable Amount 4
+                    $F_tax_type4 .            // 1810-1811 ✅ Tax Type 4
+                    $F_tax_desc4 .            // 1812-1846 ✅ Tax Description 4
+                    $F_tax_rate4 .            // 1847-1851 ✅ Tax Rate 4
+                    $F_tax_amount4 .          // 1852-1871 ✅ Tax Amount 4
+                    //Tax Rate 5 (Positions 1872-1953) - WHT Rate ที่ห้า
+                    $F_taxable_amount5 .      // 1872-1891 ✅ Taxable Amount 5
+                    $F_tax_type5 .            // 1892-1893 ✅ Tax Type 5
+                    $F_tax_desc5 .            // 1894-1928 ✅ Tax Description 5
+                    $F_tax_rate5 .            // 1929-1933 ✅ Tax Rate 5
+                    $F_tax_amount5 .          // 1934-1953 ✅ Tax Amount 5
+                    $F_wht_doc_no .           // 1954-1973
+                    $F_client_name .          // 1974-2008
+                    $F_client_address .       // 2009-2113
+                    $F_wht_seq_no .           // 2114-2123
+                    $F_payment_condition .    // 2124-2124
+                    $F_third_party_name .     // 2125-2274
+                    $F_third_party_addr1 .    // 2275-2344
+                    $F_third_party_addr2 .    // 2345-2414
+                    $F_third_party_addr3 .    // 2415-2449
+                    $F_third_party_addr4 .    // 2450-2484
+                    $F_debit_bank_code .      // 2485-2494
+                    $F_debit_branch_code .    // 2495-2504
+                    $F_debit_ac_no .          // 2505-2524
+                    $F_debit_country_code .   // 2525-2526
+                    $F_transaction_type .     // 2527-2529
+                    $F_customer_code .        // 2530-2549
+                    $F_customer_name .        // 2550-2699
+                    $F_customer_acro .        // 2700-2719
+                    $F_customer_addr1 .       // 2720-2789
+                    $F_customer_addr2 .       // 2790-2859
+                    $F_customer_addr3 .       // 2860-2894
+                    $F_customer_addr4 .       // 2895-2929
+                    $F_cust_ref1 .            // 2930-2964
+                    $F_cust_ref2 .            // 2965-2999
+                    $F_cust_ref3 .            // 3000-3034
+                    $F_cust_ref4 .            // 3035-3069
+                    $F_cust_ref5 .            // 3070-3104
+                    $F_credit_bank_code .     // 3105-3114
+                    $F_credit_branch_code .   // 3115-3124
+                    $F_credit_ac_no .         // 3125-3144
+                    $F_credit_country_code .  // 3145-3146
+                    $F_optional_service .     // 3147-3148
+                    $F_sender_name .          // 3149-3218
+                    $F_sender_correspondent . // 3219-3288
+                    $F_receiving_bank_name .  // 3289-3358
+                    $F_trx_ref1 .             // 3359-3393
+                    $F_trx_ref2 .             // 3394-3428
+                    $F_trx_ref3 .             // 3429-3463
+                    $F_trx_ref4 .             // 3464-3498
+                    $F_trx_ref5 .             // 3499-3533
+                    $F_trx_ref6 .             // 3534-3568
+                    $F_on_behalf_tax_id .     // 3569-3588
+                    $F_on_behalf_name .       // 3589-3738
+                    $F_on_behalf_address;     // 3739-3948
+                $output .= $cu27Line . "\n";
+                //Process invoices และแสดง amounts ที่ถูกต้อง (ใช้ฟังก์ชันที่ฉลาด)
+                $invoiceLines = $this->generateInvoiceLinesFromCalculatedData($invoicesData['invoices']);
+                if (!empty($invoiceLines)) {
+                    $output .= $invoiceLines;
+                }
+            }
+            // Thai encoding conversion
+            try {
+                if (mb_check_encoding($output, 'UTF-8')) {
+                    $ansiData = @iconv('UTF-8', 'Windows-874//IGNORE', $output);
+                    if ($ansiData === false) {
+                        $ansiData = @iconv('UTF-8', 'TIS-620//IGNORE', $output);
+                    }
+                    if ($ansiData === false) {
+                        $ansiData = "\xEF\xBB\xBF" . $output;
+                    }
+                } else {
+                    $ansiData = $output;
+                }
+            } catch (Exception $e) {
+                Log::error('Thai encoding conversion failed: ' . $e->getMessage());
                 $ansiData = $output;
             }
+
+            $fileData = str_replace(["\r\n", "\r", "\n"], "\r\n", $ansiData);
+            $fileSize = strlen($fileData);
+
+            // 🎯 ใส่ตรงนี้ - Generate filename with date
+            $dateFormatted = Carbon::parse($this->selectedDate)->format('Ymd');
+            // ✅ โค้ดใหม่ (ถูกต้อง)
+            $orgName = $this->orgOptions[$this->orgId] ?? 'ORG' . $this->orgId;
+            $orgParts = preg_split('/[\s-]+/', trim($orgName));
+            $shortOrgName = strtoupper($orgParts[0]); // เอาแค่คำแรก เช่น TRT, TRU, TAP
+            $dateFormatted = Carbon::parse($this->selectedDate)->format('Ymd');
+            $fileName = $shortOrgName . '_CU27_' . $dateFormatted . '.txt';
+
+            // Clear selection after successful export
+            $originalSelectedCount = count($this->selectedChecks);
+            $this->selectedChecks = [];
+            $this->selectAllChecks = false;
+
+            $successMessage = '✅ FIXED CU27 file exported successfully! ' .
+                $originalSelectedCount . ' checks exported to ' . $fileName;
+            session()->flash('success', $successMessage);
+
+            return response()->streamDownload(function () use ($fileData) {
+                echo $fileData;
+            }, $fileName, [
+                'Content-Type' => 'text/plain; charset=windows-874',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '\"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ]);
         } catch (Exception $e) {
-            Log::error('Thai encoding conversion failed: ' . $e->getMessage());
-            $ansiData = $output;
-        }
-
-        $fileData = str_replace(["\r\n", "\r", "\n"], "\r\n", $ansiData);
-        $fileSize = strlen($fileData);
-
-        // Generate filename with date and org
-        $dateFormatted = Carbon::parse($this->selectedDate)->format('Ymd');
-        $orgName = $this->orgOptions[$this->orgId] ?? 'ORG' . $this->orgId;
-        $orgParts = preg_split('/[\s-]+/', trim($orgName));
-        $shortOrgName = strtoupper($orgParts[0]);
-        $fileName = $shortOrgName . '_CU27_' . $dateFormatted . '.txt';
-
-        // Clear selection after successful export
-        $originalSelectedCount = count($this->selectedChecks);
-        $this->selectedChecks = [];
-        $this->selectAllChecks = false;
-
-        // ✅ Log export success พร้อมข้อมูลบัญชี
-        Log::info("✅ CU27 Export Successful", [
-            'org_id' => $this->orgId,
-            'org_name' => $orgName,
-            'selected_date' => $this->selectedDate,
-            'checks_exported' => $originalSelectedCount,
-            'file_name' => $fileName,
-            'file_size' => $fileSize,
-            'bank_account_id' => $this->selectedBankAccountId,
-            'debit_account' => $debitAccountInfo
-        ]);
-
-        $successMessage = '✅ CU27 file exported successfully! ' .
-            $originalSelectedCount . ' checks exported to ' . $fileName .
-            ' (Account: ' . $debitAccountInfo['account_number'] . ')';
-        
-        session()->flash('success', $successMessage);
-
-        return response()->streamDownload(function () use ($fileData) {
-            echo $fileData;
-        }, $fileName, [
-            'Content-Type' => 'text/plain; charset=windows-874',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-            'Pragma' => 'no-cache',
-            'Expires' => '0'
-        ]);
-
-    } catch (Exception $e) {
-        Log::error('❌ CU27 Export Failed', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-            'org_id' => $this->orgId,
-            'selected_date' => $this->selectedDate,
-            'bank_account_id' => $this->selectedBankAccountId ?? 'NOT_SELECTED'
-        ]);
-        
-        if (strpos($e->getMessage(), 'memory') !== false || strpos($e->getMessage(), 'exhausted') !== false) {
-            session()->flash('error', 'Export failed due to insufficient memory. Please reduce your selection.');
-        } elseif (strpos($e->getMessage(), 'timeout') !== false) {
-            session()->flash('error', 'Export timed out. Please reduce your selection.');
-        } else {
-            session()->flash('error', 'Export failed: ' . $e->getMessage());
+            if (strpos($e->getMessage(), 'memory') !== false || strpos($e->getMessage(), 'exhausted') !== false) {
+                session()->flash('error', 'Export failed due to insufficient memory. Please reduce your selection.');
+            } elseif (strpos($e->getMessage(), 'timeout') !== false) {
+                session()->flash('error', 'Export timed out. Please reduce your selection.');
+            } else {
+                session()->flash('error', 'Export failed: ' . $e->getMessage());
+            }
         }
     }
-}
     // 🔥 NEW: Force component re-render
     private function forceRender()
     {
