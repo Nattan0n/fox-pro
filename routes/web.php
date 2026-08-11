@@ -28,6 +28,11 @@ Route::view('oracle', 'oracle')
     ->middleware(['auth', 'verified'])
     ->name('oracle');
 
+// SCB Supplier Payment
+Route::view('scb', 'scb')
+    ->middleware(['auth', 'verified'])
+    ->name('scb');
+
 Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
