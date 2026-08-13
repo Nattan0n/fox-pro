@@ -1,4 +1,4 @@
-<svg width="760" height="180" viewBox="0 0 760 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<svg width="560" height="180" viewBox="0 0 560 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Pay Export Hub logo</title>
   <desc id="desc">Pay Export Hub horizontal logo for a neutral Oracle to bank payment export platform.</desc>
   <defs>
@@ -15,16 +15,12 @@
   <path d="M62 44H108L130 66V122C130 128.627 124.627 134 118 134H62C55.373 134 50 128.627 50 122V56C50 49.373 55.373 44 62 44Z" fill="white" fill-opacity="0.96"/>
   <path d="M108 44V63C108 66.866 111.134 70 115 70H130" fill="#DBEAFE"/>
   <path d="M66 94L82 110L116 76" stroke="url(#markAccent)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M104 126H138V92" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M103 127L138 92" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M104 126H138V92" stroke="#4F46E5" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M103 127L138 92" stroke="#4F46E5" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="32" cy="90" r="5" fill="#93C5FD"/>
   <circle cx="148" cy="90" r="5" fill="#D8B4FE"/>
   <path d="M37 90H50" stroke="#BFDBFE" stroke-width="5" stroke-linecap="round"/>
   <path d="M130 90H143" stroke="#E9D5FF" stroke-width="5" stroke-linecap="round"/>
-  <text x="196" y="82" fill="#0F172A" font-family="Figtree, Arial, sans-serif" font-size="42" font-weight="800">Pay Export Hub</text>
+  <text x="196" y="82" fill="#0F172A" font-family="Figtree, Arial, sans-serif" font-size="46" font-weight="800">Pay Export Hub</text>
   <text x="198" y="124" fill="#475569" font-family="Figtree, Arial, sans-serif" font-size="22" font-weight="600">Oracle to bank payment files</text>
-  <circle cx="594" cy="90" r="6" fill="#2563EB"/>
-  <path d="M612 90H666" stroke="#64748B" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="684" cy="90" r="6" fill="#7E22CE"/>
-  <text x="598" y="124" fill="#64748B" font-family="Figtree, Arial, sans-serif" font-size="16" font-weight="700">UOB / SCB</text>
 </svg>
