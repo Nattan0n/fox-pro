@@ -6,12 +6,13 @@ Replace UOB-only system branding with a neutral payment export identity that fit
 
 ## Approved Direction
 
-Use the "Pay Export Hub" concept:
+Use the revised "Corporate Connector" version of the Pay Export Hub concept:
 
-- A central payment/export symbol, not a bank logo.
-- Visual cues for check/payment export: document/check shape, outbound arrow, and connector lines.
+- A central integration hub symbol, not a bank logo.
+- Visual cues for Oracle-to-bank payment flow: source node, hub node, bank destination nodes, and directional connector lines.
 - Blue and purple accents to align with the current UOB/Oracle and SCB page themes without copying either bank brand.
 - Compact enough for favicon and navbar usage.
+- Avoid document/checkmark metaphors because they read as generic checklist/task app branding.
 
 ## Scope
 
@@ -33,7 +34,7 @@ Keep bank-specific branding inside bank-specific pages:
 
 ## Visual Design
 
-The icon will use a rounded square mark with a white or light background, a blue-to-purple accent, a simple check/document glyph, and an export arrow. The full logo will combine the icon with the text "Pay Export Hub" and a small subtitle or compact lockup suitable for the navbar.
+The icon will use a rounded square mark with a restrained blue-to-purple background, a central hub node, and clean connector lines to source/destination nodes. The full logo will combine the icon with the text "Pay Export Hub" and a compact subtitle suitable for the navbar.
 
 The style should match the existing UI: clean, rounded, subtle shadow-friendly, readable at small sizes, and not overly decorative.
 
