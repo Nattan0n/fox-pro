@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Pay Export Hub icon</title>
+  <desc id="desc">A neutral payment export icon with a check document, export arrow, and blue purple connector colors.</desc>
+  <defs>
+    <linearGradient id="bg" x1="72" y1="72" x2="440" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#7E22CE"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="164" y1="176" x2="352" y2="344" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#C084FC"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="108" fill="url(#bg)"/>
+  <path d="M164 132H304L368 196V356C368 371.464 355.464 384 340 384H164C148.536 384 136 371.464 136 356V160C136 144.536 148.536 132 164 132Z" fill="white" fill-opacity="0.96"/>
+  <path d="M304 132V190C304 197.732 310.268 204 318 204H368" fill="#DBEAFE"/>
+  <path d="M182 276L226 320L322 224" stroke="url(#accent)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M284 344H374V254" stroke="white" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M280 348L374 254" stroke="white" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="116" cy="256" r="14" fill="#93C5FD"/>
+  <circle cx="396" cy="256" r="14" fill="#D8B4FE"/>
+  <path d="M130 256H164" stroke="#BFDBFE" stroke-width="12" stroke-linecap="round"/>
+  <path d="M368 256H382" stroke="#E9D5FF" stroke-width="12" stroke-linecap="round"/>
+</svg>
