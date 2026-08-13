@@ -1,24 +1,44 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Pay Export Hub icon</title>
-  <desc id="desc">A neutral payment export icon with a check document, export arrow, and blue purple connector colors.</desc>
+  <desc id="desc">A corporate connector mark showing an Oracle source flowing through a payment hub to bank destinations.</desc>
   <defs>
-    <linearGradient id="bg" x1="72" y1="72" x2="440" y2="440" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2563EB"/>
-      <stop offset="1" stop-color="#7E22CE"/>
+    <linearGradient id="panel" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#EEF2FF"/>
     </linearGradient>
-    <linearGradient id="accent" x1="164" y1="176" x2="352" y2="344" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#38BDF8"/>
-      <stop offset="1" stop-color="#C084FC"/>
+    <linearGradient id="flow" x1="126" y1="256" x2="400" y2="256" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="hub" x1="202" y1="202" x2="310" y2="310" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#6D28D9"/>
     </linearGradient>
   </defs>
-  <rect x="32" y="32" width="448" height="448" rx="108" fill="url(#bg)"/>
-  <path d="M164 132H304L368 196V356C368 371.464 355.464 384 340 384H164C148.536 384 136 371.464 136 356V160C136 144.536 148.536 132 164 132Z" fill="white" fill-opacity="0.96"/>
-  <path d="M304 132V190C304 197.732 310.268 204 318 204H368" fill="#DBEAFE"/>
-  <path d="M182 276L226 320L322 224" stroke="url(#accent)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M284 344H374V254" stroke="#4F46E5" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M280 348L374 254" stroke="#4F46E5" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="116" cy="256" r="14" fill="#93C5FD"/>
-  <circle cx="396" cy="256" r="14" fill="#D8B4FE"/>
-  <path d="M130 256H164" stroke="#BFDBFE" stroke-width="12" stroke-linecap="round"/>
-  <path d="M368 256H382" stroke="#E9D5FF" stroke-width="12" stroke-linecap="round"/>
+  <rect x="38" y="38" width="436" height="436" rx="98" fill="url(#panel)" stroke="#D8E0EF" stroke-width="12"/>
+  <path d="M132 256H213" stroke="#CBD5E1" stroke-width="20" stroke-linecap="round"/>
+  <path d="M297 226L368 184" stroke="#CBD5E1" stroke-width="20" stroke-linecap="round"/>
+  <path d="M297 286L368 328" stroke="#CBD5E1" stroke-width="20" stroke-linecap="round"/>
+  <path d="M132 256H219" stroke="url(#flow)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M294 226L363 186" stroke="url(#flow)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M294 286L363 326" stroke="url(#flow)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M356 170L394 170L375 204Z" fill="#7C3AED"/>
+  <path d="M356 342L394 342L375 308Z" fill="#4F46E5"/>
+  <circle cx="118" cy="256" r="34" fill="#2563EB"/>
+  <circle cx="386" cy="174" r="34" fill="#7C3AED"/>
+  <circle cx="386" cy="338" r="34" fill="#4F46E5"/>
+  <circle cx="256" cy="256" r="76" fill="url(#hub)"/>
+  <circle cx="256" cy="256" r="48" fill="white"/>
+  <path d="M256 256L236 242" stroke="#CBD5E1" stroke-width="8" stroke-linecap="round"/>
+  <path d="M256 256L278 240" stroke="#CBD5E1" stroke-width="8" stroke-linecap="round"/>
+  <path d="M256 256L278 276" stroke="#CBD5E1" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="12" fill="#1E293B"/>
+  <circle cx="236" cy="242" r="8" fill="#2563EB"/>
+  <circle cx="278" cy="240" r="8" fill="#7C3AED"/>
+  <circle cx="278" cy="276" r="8" fill="#4F46E5"/>
+  <circle cx="118" cy="256" r="12" fill="white"/>
+  <rect x="368" y="158" width="36" height="26" rx="6" fill="white"/>
+  <rect x="368" y="322" width="36" height="26" rx="6" fill="white"/>
+  <path d="M375 177H397" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+  <path d="M375 341H397" stroke="#4F46E5" stroke-width="5" stroke-linecap="round"/>
 </svg>
