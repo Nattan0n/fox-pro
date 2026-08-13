@@ -21,13 +21,13 @@ new class extends Component
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
-                <!-- Logo - UOB Only -->
+                <!-- Logo - Pay Export Hub -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center space-x-3 group">
-                        <!-- UOB Logo with Enhanced Styling -->
-                        <div class="w-20 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg border border-slate-200 dark:border-slate-600 p-1.5 transition-all duration-300 group-hover:shadow-2xl group-hover:scale-105">
-                            <img src="{{ asset('images/uob-logo-color.png') }}"
-                                alt="UOB"
+                        <!-- Pay Export Hub Logo with Enhanced Styling -->
+                        <div class="w-36 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg border border-slate-200 dark:border-slate-600 px-2 py-1 transition-all duration-300 group-hover:shadow-2xl group-hover:scale-105">
+                            <img src="{{ asset('images/payment-hub-logo.svg') }}"
+                                alt="Pay Export Hub"
                                 class="w-full h-full object-contain">
                         </div>
                         <!-- App Title -->
@@ -159,7 +159,7 @@ new class extends Component
                 <div>
                     <h3 class="text-white font-bold text-lg">Release Notes</h3>
                     <p class="text-blue-200 text-sm">
-                        UOB Check Payment Export System · {{ config('app_version.version') }}
+                        Pay Export Hub · {{ config('app_version.version') }}
                     </p>
                 </div>
                 <button @click="showChangelog = false"
