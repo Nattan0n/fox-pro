@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Pay Export Hub') }}</title>
+        <title>Pay Export Hub</title>
 
         <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="{{ asset('images/payment-hub-icon.svg') }}">
