@@ -24,9 +24,9 @@ new class extends Component
                 <!-- Logo - Pay Export Hub -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center space-x-3 group">
-                        <!-- Pay Export Hub Logo with Enhanced Styling -->
-                        <div class="w-36 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg border border-slate-200 dark:border-slate-600 px-2 py-1 transition-all duration-300 group-hover:shadow-2xl group-hover:scale-105">
-                            <img src="{{ asset('images/payment-hub-logo.svg') }}"
+                        <!-- Pay Export Hub Icon with Enhanced Styling -->
+                        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg border border-slate-200 dark:border-slate-600 p-1 transition-all duration-300 group-hover:shadow-2xl group-hover:scale-105">
+                            <img src="{{ asset('images/payment-hub-icon.svg') }}"
                                 alt="Pay Export Hub"
                                 class="w-full h-full object-contain">
                         </div>

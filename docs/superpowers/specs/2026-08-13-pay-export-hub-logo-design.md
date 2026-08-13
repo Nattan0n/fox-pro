@@ -16,10 +16,10 @@ Use the revised "Corporate Connector" version of the Pay Export Hub concept:
 
 ## Scope
 
-Create reusable web assets:
+Create a single reusable web asset:
 
-- `public/images/payment-hub-logo.svg` for navbar and larger logo placements.
-- `public/images/payment-hub-icon.svg` for favicon and small square placements.
+- `public/images/payment-hub-icon.svg` for favicon, login, navbar, and small square placements.
+- Do not use a separate horizontal `payment-hub-logo.svg` asset.
 
 Update branding references:
 
@@ -34,7 +34,7 @@ Keep bank-specific branding inside bank-specific pages:
 
 ## Visual Design
 
-The icon will use a rounded square mark with a restrained blue-to-purple background, a central hub node, and clean connector lines to source/destination nodes. The full logo will combine the icon with the text "Pay Export Hub" and a compact subtitle suitable for the navbar.
+The icon will use a rounded square mark with a restrained blue-to-purple background, a central hub node, and clean connector lines to source/destination nodes. The navbar should use this icon asset together with existing adjacent text instead of a separate horizontal logo SVG.
 
 The style should match the existing UI: clean, rounded, subtle shadow-friendly, readable at small sizes, and not overly decorative.
 
