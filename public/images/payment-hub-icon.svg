@@ -2,43 +2,43 @@
   <title id="title">Pay Export Hub icon</title>
   <desc id="desc">A corporate connector mark showing an Oracle source flowing through a payment hub to bank destinations.</desc>
   <defs>
-    <linearGradient id="panel" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+    <linearGradient id="panel" x1="8" y1="8" x2="504" y2="504" gradientUnits="userSpaceOnUse">
       <stop stop-color="#F8FAFC"/>
       <stop offset="1" stop-color="#EEF2FF"/>
     </linearGradient>
-    <linearGradient id="flow" x1="126" y1="256" x2="400" y2="256" gradientUnits="userSpaceOnUse">
+    <linearGradient id="flow" x1="86" y1="256" x2="430" y2="256" gradientUnits="userSpaceOnUse">
       <stop stop-color="#2563EB"/>
       <stop offset="1" stop-color="#7C3AED"/>
     </linearGradient>
-    <linearGradient id="hub" x1="202" y1="202" x2="310" y2="310" gradientUnits="userSpaceOnUse">
+    <linearGradient id="hub" x1="168" y1="168" x2="344" y2="344" gradientUnits="userSpaceOnUse">
       <stop stop-color="#1D4ED8"/>
       <stop offset="1" stop-color="#6D28D9"/>
     </linearGradient>
   </defs>
-  <rect x="38" y="38" width="436" height="436" rx="98" fill="url(#panel)" stroke="#D8E0EF" stroke-width="12"/>
-  <path d="M132 256H213" stroke="#CBD5E1" stroke-width="20" stroke-linecap="round"/>
-  <path d="M297 226L368 184" stroke="#CBD5E1" stroke-width="20" stroke-linecap="round"/>
-  <path d="M297 286L368 328" stroke="#CBD5E1" stroke-width="20" stroke-linecap="round"/>
-  <path d="M132 256H219" stroke="url(#flow)" stroke-width="12" stroke-linecap="round"/>
-  <path d="M294 226L363 186" stroke="url(#flow)" stroke-width="12" stroke-linecap="round"/>
-  <path d="M294 286L363 326" stroke="url(#flow)" stroke-width="12" stroke-linecap="round"/>
-  <path d="M356 170L394 170L375 204Z" fill="#7C3AED"/>
-  <path d="M356 342L394 342L375 308Z" fill="#4F46E5"/>
-  <circle cx="118" cy="256" r="34" fill="#2563EB"/>
-  <circle cx="386" cy="174" r="34" fill="#7C3AED"/>
-  <circle cx="386" cy="338" r="34" fill="#4F46E5"/>
-  <circle cx="256" cy="256" r="76" fill="url(#hub)"/>
-  <circle cx="256" cy="256" r="48" fill="white"/>
-  <path d="M256 256L236 242" stroke="#CBD5E1" stroke-width="8" stroke-linecap="round"/>
-  <path d="M256 256L278 240" stroke="#CBD5E1" stroke-width="8" stroke-linecap="round"/>
-  <path d="M256 256L278 276" stroke="#CBD5E1" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="256" cy="256" r="12" fill="#1E293B"/>
-  <circle cx="236" cy="242" r="8" fill="#2563EB"/>
-  <circle cx="278" cy="240" r="8" fill="#7C3AED"/>
-  <circle cx="278" cy="276" r="8" fill="#4F46E5"/>
-  <circle cx="118" cy="256" r="12" fill="white"/>
-  <rect x="368" y="158" width="36" height="26" rx="6" fill="white"/>
-  <rect x="368" y="322" width="36" height="26" rx="6" fill="white"/>
-  <path d="M375 177H397" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-  <path d="M375 341H397" stroke="#4F46E5" stroke-width="5" stroke-linecap="round"/>
+  <rect x="6" y="6" width="500" height="500" rx="108" fill="url(#panel)" stroke="#D8E0EF" stroke-width="12"/>
+  <path d="M94 256H199" stroke="#CBD5E1" stroke-width="24" stroke-linecap="round"/>
+  <path d="M312 218L398 164" stroke="#CBD5E1" stroke-width="24" stroke-linecap="round"/>
+  <path d="M312 294L398 348" stroke="#CBD5E1" stroke-width="24" stroke-linecap="round"/>
+  <path d="M94 256H207" stroke="url(#flow)" stroke-width="15" stroke-linecap="round"/>
+  <path d="M309 218L393 166" stroke="url(#flow)" stroke-width="15" stroke-linecap="round"/>
+  <path d="M309 294L393 346" stroke="url(#flow)" stroke-width="15" stroke-linecap="round"/>
+  <path d="M388 145L433 145L411 185Z" fill="#7C3AED"/>
+  <path d="M388 367L433 367L411 327Z" fill="#4F46E5"/>
+  <circle cx="86" cy="256" r="44" fill="#2563EB"/>
+  <circle cx="414" cy="146" r="44" fill="#7C3AED"/>
+  <circle cx="414" cy="366" r="44" fill="#4F46E5"/>
+  <circle cx="256" cy="256" r="92" fill="url(#hub)"/>
+  <circle cx="256" cy="256" r="58" fill="white"/>
+  <path d="M256 256L232 239" stroke="#CBD5E1" stroke-width="10" stroke-linecap="round"/>
+  <path d="M256 256L283 237" stroke="#CBD5E1" stroke-width="10" stroke-linecap="round"/>
+  <path d="M256 256L283 281" stroke="#CBD5E1" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="15" fill="#1E293B"/>
+  <circle cx="232" cy="239" r="10" fill="#2563EB"/>
+  <circle cx="283" cy="237" r="10" fill="#7C3AED"/>
+  <circle cx="283" cy="281" r="10" fill="#4F46E5"/>
+  <circle cx="86" cy="256" r="16" fill="white"/>
+  <rect x="391" y="126" width="46" height="34" rx="8" fill="white"/>
+  <rect x="391" y="352" width="46" height="34" rx="8" fill="white"/>
+  <path d="M401 149H429" stroke="#7C3AED" stroke-width="6" stroke-linecap="round"/>
+  <path d="M401 375H429" stroke="#4F46E5" stroke-width="6" stroke-linecap="round"/>
 </svg>
